@@ -36,6 +36,7 @@
 ..*Изучите файл загрузочной конфигурации (startup configuration), который содержится в энергонезависимом ОЗУ (NVRAM).
 
 ![](https://otuslabs.ucoz.net/sh_start.jpg)
+
 Вопрос:
 Почему появляется это сообщение? **Сообщение startup-config is not present говорит о том, что на устройстве отсутствуют конфигурации, отличный от заводсткой.**
 
@@ -89,6 +90,7 @@ Switch(config-if)#no shutdown**
 ..* Изучите параметры сети VLAN по умолчанию на коммутаторе.
 
 ![](https://otuslabs.ucoz.net/sh_VLANs.jpg)
+
 Какое имя присвоено сети VLAN 1 по умолчанию?  **default**
 Какие порты расположены в сети VLAN 1?  **Fa0/1-24 Gig0/1-2**
 Активна ли сеть VLAN 1? **active**
@@ -100,6 +102,7 @@ Switch# show flash
 Switch# dir flash:
 
 ![](https://otuslabs.ucoz.net/sh_flash.jpg)
+
 В конце имени файла указано расширение, например .bin. Каталоги не имеют расширения файла.
 Вопрос:
 Какое имя присвоено образу Cisco IOS?   **2960-lanbasek9-mz.150-2.SE4.bin**
@@ -126,6 +129,7 @@ S1(config-line)# logging synchronous
 ..* Настройте каналы виртуального соединения для удаленного управления (vty), чтобы коммутатор разрешил доступ через Telnet. Если не настроить пароль VTY, будет невозможно подключиться к коммутатору по протоколу Telnet.
 
 ![](https://otuslabs.ucoz.net/all_passwords.jpg)
+
 Вопрос:
 Для чего нужна команда login? **Команда login является одной из основных команд в программе Packet Tracer. Она используется для входа в устройство или систему, обычно с помощью учетных данных**
 
@@ -141,6 +145,7 @@ S1(config-line)# logging synchronous
             
 ![](https://otuslabs.ucoz.net/sw_conf1.jpg)
 ![](https://otuslabs.ucoz.net/sw_conf2.jpg)
+
 S1#sh run
 Building configuration...
 
@@ -245,12 +250,15 @@ end
 S1# show interface vlan 1 
 
 ![](https://otuslabs.ucoz.net/sh_vlan1_2.jpg)
+
 Какова полоса пропускания этого интерфейса? **BW 100000 Kbit**
 В каком состоянии находится VLAN 1? **Vlan1 is up** 
 В каком состоянии находится канальный протокол? **line protocol is up**
 
 Шаг 2. Протестируйте сквозное соединение, отправив эхо-запрос.
+
 ![](https://otuslabs.ucoz.net/Ping_PC.jpg)
 
 ..*Проверьте удаленное управление коммутатором S1.
+
 ![](https://otuslabs.ucoz.net/SSH.jpg)
