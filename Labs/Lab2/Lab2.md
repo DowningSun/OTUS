@@ -1,7 +1,7 @@
 ##Лабораторная работа. Просмотр таблицы MAC-адресов коммутатора 
 ####Топология
 
-![][Topology link](https://otuslabs.ucoz.net/Topology.jpg)
+![](https://otuslabs.ucoz.net/Topology.jpg)
 
 ####Таблица адресации
 
