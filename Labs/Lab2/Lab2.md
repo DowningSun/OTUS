@@ -3,7 +3,7 @@
 
 ![](https://otuslabs.ucoz.net/Topology.jpg)
 
-####Таблица адресации
+###Таблица адресации
 
 | Устройство  | Интерфейс  | IP-адрес | Маска подсети |
 | :------------ |:---------------:| -----:|
@@ -31,8 +31,9 @@
                 c. Назначьте cisco в качестве паролей консоли и VTY.
                 d. Назначьте class в качестве пароля доступа к привилегированному режиму EXEC.
 
-![](https://otuslabs.ucoz.net/S1_config.jpg)
-![](https://otuslabs.ucoz.net/S2_config.jpg)
+![] (https://otuslabs.ucoz.net/S1_config.jpg)
+
+![] (https://otuslabs.ucoz.net/S2_config.jpg)
 
 
 Закройте окно настройки.
