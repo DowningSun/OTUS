@@ -44,8 +44,8 @@
            ** Шаг 1. Запишите МАС-адреса сетевых устройств.**
                 a. Откройте командную строку на PC-A и PC-B и введите команду ipconfig /all.
 
-![] (https://otuslabs.ucoz.net/PC_A_config.jpg)
-![] (https://otuslabs.ucoz.net/PC_B_config.jpg)
+![](https://otuslabs.ucoz.net/PC_A_config.jpg)
+![](https://otuslabs.ucoz.net/PC_B_config.jpg)
 
 
 Вопрос:
@@ -57,8 +57,8 @@
 Закройте окно командной строки.
                 b. Подключитесь к коммутаторам S1 и S2 через консоль и введите команду show interface F0/1 на каждом коммутаторе.
 
-![] (https://otuslabs.ucoz.net/INT_F01_S1.jpg)
-![] (https://otuslabs.ucoz.net/INT_F01_S2.jpg)
+![](https://otuslabs.ucoz.net/INT_F01_S1.jpg)
+![](https://otuslabs.ucoz.net/INT_F01_S2.jpg)
 
 
 Откройте окно конфигурации
@@ -79,7 +79,7 @@ a. Подключитесь к коммутатору S2 через консол
 Откройте окно конфигурации
 b. В привилегированном режиме EXEC введите команду show mac address-table и нажмите клавишу ввода.
 
-![] (https://otuslabs.ucoz.net/S2_mac2.jpg)
+![](https://otuslabs.ucoz.net/S2_mac2.jpg)
 
 Даже если сетевая коммуникация в сети не происходила (т. е. если команда ping не отправлялась), коммутатор может узнать МАС-адреса при подключении к ПК и другим коммутаторам.
 Вопросы:
