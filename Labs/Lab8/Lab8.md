@@ -234,3 +234,11 @@ c. Проверьте подключение с помощью пинга IP-а�
 d. Выполните show ip dhcp binding для R1 для проверки назначений адресов в DHCP.
                 
 e. Выполните команду show ip dhcp server statistics для проверки сообщений DHCP.
+
+![V4_PCB_Test](https://github.com/DowningSun/OTUS/assets/156109695/5958bc5a-b374-4278-9676-ce522abcde68)
+
+![image](https://github.com/DowningSun/OTUS/assets/156109695/58420afb-9d93-4b1f-9dae-437f365800f0)
+
+
+
+
