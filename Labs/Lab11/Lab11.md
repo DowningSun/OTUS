@@ -221,27 +221,27 @@ R1(config)# ip http authentication local
 
 **acces-list ex SALES_RULES размещается на порте 10.40.0.1 IN   запрещает HTTPS\HTTPS\SSH\ICMP-ECHO трафик ИЗ сети SALES в сеть MANAGMENT, запрет ECHO в сеть OPERATIONS, закрыт доступ WEB-протоколам на интерфейсы R1**
 
-**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 22**
+**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 22** */запрещает SSH ИЗ сети SALES в сеть MANAGMENT*
 
-**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 443**
+**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 443** */ запрещает HTTPS трафик ИЗ сети SALES в сеть MANAGMENT*
 
-**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 80**
+**deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 80** */ запрещает HTTP трафик ИЗ сети SALES в сеть MANAGMENT*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.20.0.1  eq 443**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.20.0.1  eq 443** */ запрещает HTTPS трафик ИЗ сети SALES в PORT на R1*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.30.0.1  eq 443**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.30.0.1  eq 443** */ запрещает HTTPS трафик ИЗ сети SALES в PORT на R1*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.40.0.1  eq 443**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.40.0.1  eq 443** */ запрещает HTTPS трафик ИЗ сети SALES в PORT на R1*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.20.0.1  eq 80**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.20.0.1  eq 80** */ запрещает HTTP трафик ИЗ сети SALES в PORT на R1*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.30.0.1  eq 80**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.30.0.1  eq 80** */ запрещает HTTP трафик ИЗ сети SALES в PORT на R1*
 
-**deny tcp 10.40.0.0 0.0.0.255 host 10.40.0.1  eq 80**
+**deny tcp 10.40.0.0 0.0.0.255 host 10.40.0.1  eq 80** */ запрещает HTTP трафик ИЗ сети SALES в PORT на R1*
 
-***deny icmp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 echo**
+***deny icmp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 echo** */ запрещает ICMP-ECHO трафик ИЗ сети SALES в сеть MANAGMENT*
 
-**deny icmp 10.40.0.0 0.0.0.255 10.30.0.0 0.0.0.255 echo**
+**deny icmp 10.40.0.0 0.0.0.255 10.30.0.0 0.0.0.255 echo** */ запрещает ICMP-ECHO трафик ИЗ сети SALES в сеть OPERATIONS*
 
 **permit ip any any**
 
@@ -251,7 +251,7 @@ R1(config)# ip http authentication local
 
 **acces-list ex OPERATORS_RULES размещается на порте 10.30.0.1 In**
 
-**deny icmp 10.30.0.0 0.0.0.255 10.40.0.0 0.0.0.255 echo**
+**deny icmp 10.30.0.0 0.0.0.255 10.40.0.0 0.0.0.255 echo** */ запрещает ICMP-ECHO трафик ИЗ сети OPERATIONS в сеть SALES*
 
 **permit ip any any**
 
