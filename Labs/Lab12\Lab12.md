@@ -144,6 +144,7 @@ Total number of translations: 4
 c. Обратите внимание, что предыдущая трансляция для PC-B все еще находится в таблице. Из S1, эхо-запрос интерфейса Lo1 (209.165.200.1) на R2. Если эхо-запрос не прошел, выполните отладку. На R1 отобразите таблицу NAT на R1 с помощью команды show ip nat translations.
 
 R1# show ip nat translations
+
 Pro Inside global Inside local Outside local Outside global
 --- 209.165.200.227 192.168.1.2 --- ---
 --- 209.165.200.226 192.168.1.3 --- ---
@@ -163,13 +164,13 @@ R1# show ip nat translations verbose
 Pro Inside global Inside local Outside local Outside global
 
 --- 209.165.200.226 192.168.1.3 --- ---
+
   create: 09/23/19 15:35:27, use: 09/23/19 15:35:27, timeout: 23:56:42
-  Map-Id(In): 1
-<output omitted>
 
 f. Учитывая, что пул ограничен тремя адресами, NAT для пула адресов недостаточно для нашего приложения. Очистите преобразование NAT и статистику, и мы перейдем к PAT.
 
 R1# clear ip nat translations * 
+
 R1# clear ip nat statistics 
 
 **Часть 3. Настройка и проверка PAT для IPv4.**
@@ -210,11 +211,13 @@ b. С PC-A, запустите эхо-запрос интерфейса Lo1 (209
 ![image](https://github.com/DowningSun/OTUS/assets/156109695/a7f90d77-65f9-4f6d-840f-d38a756cf61f)
 
 Обратите внимание, что есть только одна трансляция. Отправьте ping еще раз, и быстро вернитесь к маршрутизатору и введите команду show ip nat translations verbose , и вы увидите, что произошло.
+
 R1# show ip nat translations verbose 
+
 Pro Inside global Inside local Outside local Outside global
+
 icmp 209.165.200.226:1 192.168.1.2:1 209.165.200.1:1 209.165.200.1:1 
-  create: 09/23/19 16:57:22, use: 09/23/19 16:57:25, timeout: 00:01:00
-<output omitted>
+
 Как вы можете видеть, время ожидания перевода было отменено с 24 часов до 1 минуты.
 
 ![image](https://github.com/DowningSun/OTUS/assets/156109695/64238809-da8b-495b-89cf-f0a6e6a6afa1)
@@ -236,11 +239,13 @@ PAT пытается сохранить поурт источника, если 
 d. PAT в пул является очень эффективным решением для малых и средних организаций. Тем не менее есть неиспользуемые адреса IPv4, задействованные в этом сценарии. Мы перейдем к PAT с перегрузкой интерфейса, чтобы устранить эту трату IPv4 адресов. Остановите ping на PC-A и PC-B с помощью комбинации клавиш Control-C, затем очистите трансляции и статистику:
 
 R1# clear ip nat translations * 
+
 R1# clear ip nat statistics 
 
 **Шаг 4. На R1 удалите команды преобразования nat pool.**
 
 R1(config)# no ip nat inside source list 1 pool PUBLIC_ACC overload 
+
 R1(config)# no ip nat pool PUBLIC_ACC
 
 **Шаг 5. Добавьте команду PAT overload, указав внешний интерфейс.**
@@ -264,6 +269,7 @@ b. Сделайте трафик с нескольких устройств дл
 **Шаг 1. На R1 очистите текущие трансляции и статистику.**
 
 R1# clear ip nat translations * 
+
 R1# clear ip nat statistics 
 
 **Шаг 2. На R1 настройте команду NAT, необходимую для статического сопоставления внутреннего адреса с внешним адресом.**
