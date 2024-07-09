@@ -61,11 +61,14 @@
 | VLAN | ИМЯ | Назначеный интерфейс |
 | ------ | ------ | ------ |
 | VLAN 10 | SALES | SW4: Fa0/2-4; SW5: Fa0/1-3; SW6: Fa0/1-3 |
+| VLAN 11 | Vlan11 | CORE: Fa0/11, Fa0/13 |
 | VLAN 20 | OPERATORS | SW7: Fa0/1-3; SW8: Fa0/1-3 |
 | VLAN 30 | WH | SW 11: F0/5 |
 | VLAN 40 | PRINTERS | SW4: Fa 0/1; SW5: Fa0/4; SW6: Fa 0/4; SW7: Fa0/4; SW9: Fa0/3 |
 | VLAN 50 | OTHER | SW9: Fa0/1-2 |
-| VLAN 60 | DMZ | SW 4: Fa0/5-9, Fa0/11-24, G0/1-2; SW5: Fa0/5-10, Fa0/12-24, G0/1-2; SW6: Fa0/5-11, Fa0/13/24, G0/1-2; SW7: Fa0/5-12, Fa0/14-24, G0/1-2 |
-| VLAN 60 | DMZ | SW8: Fa0/4-13, Fa0/15-24, G0/1-2; SW9: Fa0/4-9, Fa0/11-24, G0/1-2; SW10: Fa0/4-10, F0/11-24, G0/2; SW11: Fa0/1-4, F0/6-24; G0/1 |
-| VLAN 60 | DMZ | SW12: Fa0/5-24; SW2: Fa0/1-2, Fa0/5-9; Fa0/12-21; SW3: Fa0/3-9, Fa0/15-21, G0/1-2; CORE: Fa0/5-10, Fa0/12, Fa0/14-24, G0/1-2 |
-
+| VLAN 60 | DMZ | SW 4: Fa0/5-9, Fa0/11-24, G0/1-2; SW5: Fa0/5-10, Fa0/12-24, G0/1-2; SW6: Fa0/5-11, Fa0/13/24, G0/1-2; SW7: Fa0/5-12, Fa0/14-24, G0/1-2; SW8: Fa0/4-13, Fa0/15-24, G0/1-2; SW9: Fa0/4-9, Fa0/11-24, G0/1-2; SW10: Fa0/4-10, F0/11-24, G0/2; SW11: Fa0/1-4, F0/6-24; G0/1; SW12: Fa0/5-24; SW2: Fa0/1-2, Fa0/5-9; Fa0/12-21; SW3: Fa0/3-9, Fa0/15-21, G0/1-2; CORE: Fa0/5-10, Fa0/12, Fa0/14-24, G0/1-2 |
+| VLAN 70 | ATC | SW4: Fa0/2-4; SW5: Fa0/1-3; SW6: Fa0/1-3; SW7: Fa0/1-3; SW8: Fa0/1-3; SW 11: F0/5, SW12: F0/4 |
+| VLAN 80 | MGMNT | No ACCES ports |
+| VLAN 90 | ADMIN | SW10: Fa0/1-3 |
+| VLAN 100 | DEFAULT_VLAN | No ACCES ports |
+| VLAN 192 | SERVERS | SW12: Fa0/1-3 | 
