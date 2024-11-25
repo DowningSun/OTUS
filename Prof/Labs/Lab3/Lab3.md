@@ -392,8 +392,7 @@ R2(config-if)# int E0/1
 R2(config-if)# ipv6 nd managed-config-flag
 R2(config-if)# ipv6 dhcp relay destination 2001:db8:acad:2::1 E0/0
 
-![image](https://github.com/DowningSun/OTUS/assets/156109695/09a9ef90-6879-46c5-aaef-56cb52aa0f5e)
-
+![image](https://github.com/user-attachments/assets/cdc8e81d-667c-49bf-9456-ae0bb8ac8f74)
 
 b. Сохраните конфигурацию.
 
@@ -405,7 +404,8 @@ b. Откройте командную строку на PC-B и выполни�
 
 С. Проверьте подключение с помощью пинга IP-адреса интерфейса R0 E 0/1.
 
-адрес с перфиксом из пула R2-STATEFUL, DNS-суффикс STATEFUL.com, DNS сервер 2001:db8:acad::254**
+![image](https://github.com/user-attachments/assets/7af8a3da-3962-4144-91b1-5849b2e51399)
+
 
 
 
