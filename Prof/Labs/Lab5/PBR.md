@@ -22,8 +22,11 @@
 Пример конфига для всех интерфейсов учавствующих в OSPF.
 
 interface EthernetX/Z
+
 ip address a.a.a.a m.m.m.m
+
 ip ospf network point-to-point
+
 ip ospf 1 area 0
 
 Данные команды применены для всех интерфейсов где включен OSPF
