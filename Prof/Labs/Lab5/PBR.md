@@ -107,3 +107,12 @@ ip ospf 1 area 0
     ip route 0.0.0.0 0.0.0.0 140.140.140.1 20
 
 
+sh ip route возвращает следующие маршруты:
+
+![image](https://github.com/user-attachments/assets/dc900f25-ff32-417b-918b-eb65e9b2775f)
+
+в случае падения узла 130.130.130.1 таблица маршрутизации меняется 
+
+![image](https://github.com/user-attachments/assets/0ca0ce16-da1f-46e3-8deb-c10e6b9624cd)
+
+
