@@ -54,5 +54,15 @@ ip ospf 1 area 0
 ![image](https://github.com/user-attachments/assets/43c38c0e-38ad-4f11-8389-16a8d461ab2d)
 
 
+Для распределения трафика создадим ACL для сети 192.168.70.0:
+
+      R28(config)#ip access-list extended PC
+      R28(config-ext-nacl)#permit 192.168.70.0 0.0.0.255 any
+
+Создадим route-map с соответствием проверки сети 192.168.70.0
+
+      R28(config)#route-map PC
+      R28(config-route-map)#match ip address PC
+      R28(config-route-map)#set ip next-hop 140.140.140.1
 
 
