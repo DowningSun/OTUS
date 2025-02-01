@@ -47,3 +47,12 @@ ip ospf 1 area 0
 
 ### 2. Распределите трафик между двумя линками с провайдером.
 
+После запуска OSPF трафик к узлу 10.10.10.1 с устройств VPC30 и VPC31 идёт через узел R25.
+
+![image](https://github.com/user-attachments/assets/cffedb9f-7304-45cf-9045-3b167ab45366)
+
+![image](https://github.com/user-attachments/assets/43c38c0e-38ad-4f11-8389-16a8d461ab2d)
+
+
+
+
