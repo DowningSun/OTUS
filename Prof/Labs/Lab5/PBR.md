@@ -57,12 +57,27 @@ ip ospf 1 area 0
 Для распределения трафика создадим ACL для сети 192.168.70.0:
 
       R28(config)#ip access-list extended PC
-      R28(config-ext-nacl)#permit 192.168.70.0 0.0.0.255 any
+      R28(config-ext-nacl)#permit ip 192.168.70.0 0.0.0.255 any
 
 Создадим route-map с соответствием проверки сети 192.168.70.0
 
       R28(config)#route-map PC
       R28(config-route-map)#match ip address PC
       R28(config-route-map)#set ip next-hop 140.140.140.1
+
+Присвоем созданный route-map интерфейсу e0/2.70
+
+      R28(config)#int e0/2.70
+      R28(config-subif)#ip policy route-map PC
+
+после применения route-map прохождение трафика стало выгляядить следующим образом:
+
+![image](https://github.com/user-attachments/assets/6dbcceb7-f9d0-4536-89f4-7ec6ac3d6f7f)
+
+![image](https://github.com/user-attachments/assets/71590277-1692-402c-8725-e989a8a6aa91)
+
+Задача распределения трафика между ISP решена.
+
+
 
 
