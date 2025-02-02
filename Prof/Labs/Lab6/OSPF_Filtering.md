@@ -70,3 +70,47 @@
 
 ![image](https://github.com/user-attachments/assets/3f4845b6-7a6d-4c2f-874f-7da735cd85a8)
 
+Для анонса маршрута по умолчанию на маршрутизаторах смотрящих на провайдера т.е R14 и R15 выполняем
+
+      R14(config-router)#default-information originate always 
+      R15(config-router)#default-information originate always 
+
+### 3. Маршрутизатор R19 находится в зоне 101 и получает только маршрут по умолчанию.
+
+     R19(config-if)#ip ospf 1 area 101
+     R19(config-if)#ipv6 ospf 1 area 101
+
+Для выполнения данного задания необходимо на R14 маршрутизаторе выполнить команду:
+ 
+     R14(config-router)#area 101 stub no-summary      
+ 
+ На маршрутизаторе R19:
+ 
+      R19(config-router)#area 101 stub
+       
+ После введенных настроек таблица маршрутизации на R19 выглядит: 
+
+ ![image](https://github.com/user-attachments/assets/db51311e-11bd-4416-aca4-2511a9c554d7)
+
+ ### 4. Маршрутизатор R20 находится в зоне 102 и получает все маршруты, кроме маршрутов до сетей зоны 101.
+
+       
+      R20(config-if)#ip ospf 1 area 102
+      
+Нужно выполнить фильтрацию маршрутов так, что бы R20 не получал маршрут из зоны 101. Т.е. не получал маршрут IPv4 10.10.20.32 /30
+
+ На R15 необходимо создать prefix-list
+ 
+    R15(config)#ip prefix-list NO_AREA101 seq 5 deny 10.10.20.32/30
+    R15(config)#ip prefix-list NO_AREA101 seq 10 permit 0.0.0.0/0 le 32
+    
+ Далее в конфигурации протокола OSPF указать название prefix-list и действие prefix-list
+ 
+    R15(config-router)#area 102 filter-list prefix NO_AREA101 in
+
+В результате таблица маршрутизации преобретает следующий вид
+
+![image](https://github.com/user-attachments/assets/0747aad0-ecb7-41f3-b9ac-f0ff23527261)
+
+
+    
