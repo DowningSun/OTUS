@@ -66,3 +66,7 @@
 
 ![image](https://github.com/user-attachments/assets/e9b11565-5abf-42ac-bd47-121f589027ca)
 
+При разрыве линка R14 to R15 трафикпойдёт через virtual-link R12 to R13
+
+![image](https://github.com/user-attachments/assets/3f4845b6-7a6d-4c2f-874f-7da735cd85a8)
+
