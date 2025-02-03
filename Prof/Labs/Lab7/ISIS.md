@@ -24,19 +24,15 @@ IS-IS
  
 2. Согласно задания номер 2-4 назначаем Network Entity Title для каждого маршрутизатора
 
-       R23(config-router)#net 25.2222.0023.0023.0023.00
-       R24(config-router)#net 25.0024.0024.0024.0024.00
-       R25(config-router)#net 25.2222.0025.0025.0025.00
-       R26(config-router)#net 25.0026.0026.0026.0026.00
+       R23(config-router)#net 49.2222.0023.0023.0023.00
+       R24(config-router)#net 49.0024.0024.0024.0024.00
+       R25(config-router)#net 49.2222.0025.0025.0025.00
+       R26(config-router)#net 49.0026.0026.0026.0026.00
        
        
 3. Интерфейсы роутеров добавляем к анонсу IS-IS
  
        RX(config-if)#ip router isis
-
-Пример настройки:
-
-![image](https://github.com/user-attachments/assets/c161b6eb-a656-42de-8e66-56386860a15d)
 
 По умолчанию на роутерах Cisco протокол IS-IS работает в режиме L1/L2. Поэтому роутеры находящиеся в одной зоне (R23/R25) буду генерировать по 2 LSP т.е LSP L1 и LSP L2.
 
