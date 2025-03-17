@@ -72,7 +72,7 @@ R16-17 анонсируют только суммарные префиксы
 
 До суммирования, таблица маршрутизации R18 выглядит следующим образом:
 
- R16-17(config)#router eigrp PITER
+     R16-17(config)#router eigrp PITER
      R16-17(config-router)#address-family ipv4 unicast autonomous-system 100
      R16-17(config-router-af)#af-interface e0/1
      R16-17(config-router-af-interface)#summary-address 30.30.30.0 255.255.255.240
