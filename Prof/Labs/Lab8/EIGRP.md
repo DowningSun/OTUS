@@ -57,7 +57,7 @@ R16-17 анонсируют только суммарные префиксы
 
 Для выполнения данного задания необходимо на маршрутизаторе R16 ввести следующие команды.
 
-     R16(config)#router eigrp PITER
+     R16(config)#router eigrp SPB
      R16(config-router)#address-family ipv4 unicast autonomous-system 100
      R16(config-router-af)#af-interface e0/3 - этот инерфейс смотрит на маршрутизатор R32
      R16(config-router-af-interface)#summary-address 0.0.0.0 0.0.0.0
@@ -70,9 +70,7 @@ R16-17 анонсируют только суммарные префиксы
 
 Для выполнения данного задания необходимо проссумировать маршруты на R17 и R16 и отдать их в сторону R18 для сокращения таблицы маршрутизации.
 
-До суммирования, таблица маршрутизации R18 выглядит следующим образом:
-
-     R16-17(config)#router eigrp PITER
+     R16-17(config)#router eigrp SPB
      R16-17(config-router)#address-family ipv4 unicast autonomous-system 100
      R16-17(config-router-af)#af-interface e0/1
      R16-17(config-router-af-interface)#summary-address 30.30.30.0 255.255.255.240
