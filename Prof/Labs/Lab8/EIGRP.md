@@ -37,6 +37,14 @@ R16-17 анонсируют только суммарные префиксы
 5.  Данная команда отключает процес обмена EIGRP пакетами на всех интерфейсах.
 
         RX(config-router-af-interface)#shutdown
-        
+    
+6.  Настройка обмена EIGRP пакетами на конкретном интерфейсе
+
         RX(config-router-af)#af-interface ethernet - вход в настройку интерфейса учавствующего в обмене EIGRP пакетами.
         RX(config-router-af)#no shutdown - включаем обмен EIGRP пакетами конкретно на необходимом интерфейсе
+
+
+
+![image](https://github.com/user-attachments/assets/82097ccb-04dc-4372-aac5-dd94e156ee87)
+
+
