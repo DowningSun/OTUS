@@ -47,4 +47,34 @@ R16-17 анонсируют только суммарные префиксы
 
 ![image](https://github.com/user-attachments/assets/82097ccb-04dc-4372-aac5-dd94e156ee87)
 
+## Псоле проведенных настройках таблица маршрутизации выглядит следжующим образом:
 
+![image](https://github.com/user-attachments/assets/62a3e3f3-9f93-4c96-bb6d-e4dc5bdd9fbb)
+
+Сети LoopBack X.X.X.X - где X это цифра номера маршрутизатора согласно схемы. Пример 17.17.17.17 - роутер R17, 32.32.32.32 - роутер R32
+
+## 2. R32 получает только маршрут по-умолчанию.
+
+Для выполнения данного задания необходимо на маршрутизаторе R16 ввести следующие команды.
+
+     R16(config)#router eigrp PITER
+     R16(config-router)#address-family ipv4 unicast autonomous-system 100
+     R16(config-router-af)#af-interface e0/3 - этот инерфейс смотрит на маршрутизатор R32
+     R16(config-router-af-interface)#summary-address 0.0.0.0 0.0.0.0
+
+После ввода данных команд таблица маршрутизации роутера R32 соответствует заданию.
+
+![image](https://github.com/user-attachments/assets/caa7a31f-8856-403d-bc97-0ee7c68a186d)
+
+## 3 .R16-17 анонсируют только суммарные префиксы. 
+
+Для выполнения данного задания необходимо проссумировать маршруты на R17 и R16 и отдать их в сторону R18 для сокращения таблицы маршрутизации.
+
+До суммирования, таблица маршрутизации R18 выглядит следующим образом:
+
+ R16-17(config)#router eigrp PITER
+     R16-17(config-router)#address-family ipv4 unicast autonomous-system 100
+     R16-17(config-router-af)#af-interface e0/1
+     R16-17(config-router-af-interface)#summary-address 30.30.30.0 255.255.255.240
+
+Сети 10.10.30.0/30, 10.10.30.4/30, 10.10.30.8/30, 10.10.30.12/30 проссумировались в общую сеть 10.10.30.0/28
