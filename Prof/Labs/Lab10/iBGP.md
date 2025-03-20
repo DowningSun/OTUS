@@ -86,3 +86,44 @@
       neighbor 26.26.26.26 next-hop-self
       neighbor 90.90.90.1 remote-as 301
       neighbor 100.100.100.2 remote-as 2042
+
+После выполнения данных команд на каждом роутере создается BGP соседвство.
+
+![image](https://github.com/user-attachments/assets/ac0ba2e9-bd37-4c70-9c0b-51e7f930cfd4)
+
+![image](https://github.com/user-attachments/assets/8be00ba1-d766-4bcf-a2d4-3371944c94b5)
+
+## 2. iBGP в офисе Москва между маршрутизаторами R14 и R15
+
+iBGP между роутерами R14 и R15 аналогична настройкам iBGP Триада
+
+1. Включаем на всех роутерах процес BGP с номером AS согласно схемы. 
+          
+       RX(config)#router BGP X - где X номер автономной системы.
+      
+Роутеры учавствующие в обмене:
+ 
+    R14 - Москва
+    R15 - Москва
+    
+2. Назначаем на каждом роутере Router ID для BGP.
+
+       RX(config)#router bgp X
+       RX(config-router)#bgp router-id x.x.x.x - где x.x.x.x номер роутера согласно схемы. R14 - router-id 14.14.14.14
+
+3. Устанавливаем сосдество по iBGP согласно задания.
+
+       R14 - Москва (14.14.14.14)  - R15 - Москва (15.15.15.15)
+       R15 - Москва (15.15.15.15)  - R14 - Москва (14.14.14.14)
+
+![image](https://github.com/user-attachments/assets/5ab74151-15c6-4dbf-ace3-7fb85154ce74)
+
+![image](https://github.com/user-attachments/assets/158c5451-475c-4928-b15b-8269e8077b69)
+
+## 3. Настройте офис Москвы так, чтобы приоритетным провайдером стал Ламас.
+
+Схема сети Москва-Ламас
+
+![image](https://github.com/user-attachments/assets/88eb7e8f-542e-4b92-bbf9-5da564574f22)
+
+
