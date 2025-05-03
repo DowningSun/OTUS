@@ -5,11 +5,15 @@ no ip domain-lookup
 
 host R1INF
 
+// интерфейс связи с "клиентом"
+
 int e0/0
  des TOR1HQ
  ip add 90.40.60.139 255.255.255.240
  no sh
 exit
+
+//интерфейс к сети провайдера RT
 
 int E0/1
  des TOR2RT
@@ -17,11 +21,15 @@ int E0/1
  no sh
 exit
 
+//интерфейс для связи с провайдером KV
+
 int E0/2
  des TOR1KV
  ip add 14.14.14.2 255.255.255.252
  no sh
 exit
+
+//запускам bgp чтобы обмениваться трафиком между провайдерами
 
 router bgp 103
  bgp log-neighbor-changes
