@@ -5,6 +5,8 @@ host SQ2HQ
 
 no ip domain-lookup
 
+//Коммутатор доступа, который просто распределяет трафик от разных VLAN к коммутатору ядра. Настроен STP.
+
 vlan 10
  name LocalHQ
 vlan 20
