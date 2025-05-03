@@ -5,6 +5,8 @@ no ip domain-lookup
 
 host SW4
 
+//Коммутатор доступа, который просто распределяет трафик от разных VLAN к коммутатору ядра. Настроен STP.
+
 spanning-tree mode rapid-pvst
 
 vlan 10
