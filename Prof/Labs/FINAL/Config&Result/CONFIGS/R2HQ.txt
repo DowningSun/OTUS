@@ -5,6 +5,13 @@ no ip domain-lookup
 
 host R2HQ
 
+int Lo0
+ no sh
+ ip address 10.2.2.2 255.255.255.255
+exit 
+
+//интерфейс к провайдеру 
+
 int e0/0
  des TOR1RT
  ip add 80.82.1.5 255.255.255.252
@@ -12,10 +19,7 @@ int e0/0
  ip nat outside
 exit 
 
-int Lo0
- no sh
- ip address 10.2.2.2 255.255.255.255
-exit 
+//интерфейс к коммутатору ядра+NAT+HSRP
 
 interface E0/2
  des TOCORE
@@ -28,15 +32,20 @@ interface E0/2
  ip nat inside
  ip ospf 1 area 10
 exit 
- 
+
+//ACL для NAT
+
 ip access-list extended NAT_RULE
  deny ip 10.10.0.0 0.0.255.255 10.20.0.0 0.0.255.255
  deny ip 10.10.0.0 0.0.255.255 192.168.1.0 0.0.0.255
  permit ip 10.10.0.0 0.0.255.255 any
 exit 
 
+//NAT(PAT)
 
 ip nat inside source list NAT_RULE interface E0/0 overload
+
+//провека доступности "интернета" для изменения приоритета в HSRP
 
 ip sla 2
  icmp-echo 77.88.8.8 source-interface E0/1
@@ -47,7 +56,11 @@ ip sla schedule 2 life forever start-time now
 
 track 2 ip sla 2 reachability
 
+//маршрут по умолчанию
+
 ip route 0.0.0.0 0.0.0.0 80.82.1.6
+
+//ospf чтобы не писать ip route во внутренние сети
 
 router ospf 1
  router-id 10.2.2.2
