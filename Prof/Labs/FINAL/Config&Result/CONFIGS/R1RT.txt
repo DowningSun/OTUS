@@ -5,17 +5,22 @@ no ip domain-lookup
 
 host R1RT
 
+//нам нужен loopback, на котором мы будем строить isis
 int Lo0
  ip add 1.1.1.1 255.255.255.255
  ip router isis
  isis passive-interface
 exit
 
+//доступ в "интеернет" для головного офиса
+
 int e0/0
  des TOR2HQ
  ip add 80.82.1.6 255.255.255.252
  no sh
 exit 
+
+//доступ к соседу
 
 int e0/1
  des TOR3RT
@@ -24,11 +29,15 @@ int e0/1
  ip router isis
 exit 
 
+//за этим интерфейсом пряячется YANDEX, на котором мы будем проверять доступность интернета
+
 int e0/2
  des TOYANDEX
  ip add 77.88.8.1 255.255.255.0
  no sh
 exit
+
+//доступ к ещё одному соседу
 
 int e0/3
  des TOR2RT
@@ -37,13 +46,17 @@ int e0/3
  ip router isis
 exit 
 
+//ISIS для провайдлера RT, чтобы обмениваться траыиком между маршрутизаторами провайдера
+
 router isis
  net 49.0001.0001.0001.0001.00  
- is-type level-2
+ is-type level-2 //Работает только как Level-2 маршрутизатор сначала хотел сделать несколько областей, но потом передумал. А запись осталась.
  log-adjacency-changes 
- passive-interface E0/2
- passive-interface Lo0
- 
+ passive-interface E0/2 //самый простой доступ к YANDEX, который я смог приддумать
+ passive-interface Lo0 //нам надо строить на Loopback-ах
+
+//AS провайдера RT, соседи ищутся через Loopback интерфейсы. И анонсирована одна сеть, ведущая к клиенту. И сеть YANDEX.
+
 router bgp 101
  bgp log-neighbor-changes
  neighbor 2.2.2.2 remote-as 101
