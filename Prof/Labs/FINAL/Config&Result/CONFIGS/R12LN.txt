@@ -4,17 +4,21 @@ no ip domain-lookup
 
 host R12LN
 
+//назначаем интерфейс подключения к R1F2
 int E0/1
  des to R1F2
  ip add 
  ip add 60.64.20.2 255.255.255.252
  no sh
 exit
+//назначаем интерфейс подключения к провайдеру RT
 int E0/3
  des to R3RT
  ip add 12.12.12.1 255.255.255.252
  no sh
 exit
+
+// создаем eBGP для обмена маршрутом к "белому" адресу   R1F2
 
 router bgp 104
  bgp log-neighbor-changes
