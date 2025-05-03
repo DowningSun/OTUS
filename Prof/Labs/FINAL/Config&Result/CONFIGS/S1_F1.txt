@@ -3,7 +3,7 @@ conf t
 
 no ip domain-lookup
 
-host SW1F1
+host SW1F2
 
 //Коммутатор доступа, который просто распределяет трафик от разных VLAN к маршрутизатору.
 
@@ -15,7 +15,7 @@ vlan 30
  name VOIP
  
 interface E0/3
- description toR1F1
+ description toR1F2
  switchport trunk encapsulation dot1q
  switchport mode trunk
  switchport trunk allowed vlan 10,20,30
