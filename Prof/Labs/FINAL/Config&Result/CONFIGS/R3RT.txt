@@ -5,16 +5,22 @@ no ip domain-lookup
 
 host R3RT
 
+//нам нужен loopback, на котором мы будем строить isis и BGP
+
 int Lo0
  ip add 3.3.3.3 255.255.255.255
  ip router isis
 exit
+
+//порт для клиента
 
 int e0/0
  des TOF2
  ip add 80.82.30.2 255.255.255.252
  no sh
 exit 
+
+//соседний маршрутизатор провайдера RT
 
 int e0/1
  des TOR1RT
@@ -23,6 +29,8 @@ int e0/1
  ip router isis
 exit 
 
+//соседний маршрутизатор провайдера RT
+
 int e0/2
  des TOR2RT
  ip add 11.11.11.10 255.255.255.252
@@ -30,11 +38,15 @@ int e0/2
  ip router isis
 exit 
 
+//соседний маршрутизатор провайдера 2LN
+
 int e0/3
  des TOR12LN
  ip add 12.12.12.2 255.255.255.252
  no sh
 exit 
+
+//ISIS для провайдлера RT, чтобы обмениваться трафиком между маршрутизаторами провайдера
 
 router isis
  net 49.0001.0003.0003.0003.00  
@@ -42,7 +54,9 @@ router isis
  log-adjacency-changes 
  passive-interface E0/0
  passive-interface Lo0
- 
+
+//AS101 провайдера RT с построением на loopback интерфейса, ообменом маршрутами с соседним провайдером 2LN и анонсом клиентского маршрута
+
 router bgp 101
  bgp log-neighbor-changes
  neighbor 1.1.1.1 remote-as 101
