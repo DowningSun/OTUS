@@ -5,7 +5,9 @@ no ip domain-lookup
 
 hostname Core
 
+//Коммутатор уровня ядра, собирающий с себе все VLAN головного офиса, DHCP сервер, NTP сервер и на котором строятся VPN.
 ip routing
+
 
 vlan 10
  name LocalHQ
@@ -19,13 +21,15 @@ vlan 50
  name RES1
 vlan 60
  name RES2
-vlan 999
- 
+vlan 999 
+ name INTERT //создал отдельный VLAN, чтобы было удобно управлять маршрутами в интернет к HSRP и "мягко" отключать клиентов от доступа через ACL (не стал  реализовывать)
+
+//конфигурация SVI с подключением ospf.
+
 interface Vlan10
  ip address 10.10.10.254 255.255.255.0
  ip ospf 1 area 10
  no shutdown
-
 
 interface Vlan20
  ip address 10.10.20.254 255.255.255.0
@@ -57,14 +61,18 @@ int VLAN999
  ip ospf 1 area 10
  no sh  
 
+// интерфейс для доступа к провайдерским VPN. Без NAT
+
 interface E0/0
  no switchport
- description toR1F1
+ description toVPN_SUMM
  ip address 10.100.100.1 255.255.255.240
  no shutdown
  duplex half
 exit 
- 
+
+//Интерфейсы к роутерам
+
 interface E0/1
  description toR1
  switchport 
@@ -82,6 +90,8 @@ interface E0/2
  duplex half
  no shutdown
 exit 
+
+//интерфейсы к коммутаторам досутпа
 
 interface E1/0
  description ToSW2
@@ -115,6 +125,8 @@ exit
 
 spanning-tree mode rapid-pvst
 
+//конфигурация DHCP пулов для VLAN. Резервные VLAN не имеют пулов. Часть адресов зарезервирована для статики
+
 ip dhcp pool VLAN10-Local
  network 10.10.10.0 255.255.255.0
  default-router 10.10.10.254
@@ -139,30 +151,26 @@ ip dhcp excluded-address 10.10.20.1 10.10.20.50
 ip dhcp excluded-address 10.10.30.1 10.10.30.50
 
 
+//маршрут по умолчанию к HSRP
 
 ip route 0.0.0.0 0.0.0.0 10.10.255.248
+
+//NTP с адресами основного и резервного сервером
 
 clock timezone MSK 3
 
 ntp server 194.190.168.1 prefer
 ntp server 95.79.30.113
 
-ntp source Vlan10
+ntp source Vlan999
 
-ip access-list standard 10
- permit 194.190.168.1
- permit 95.79.30.113
- deny any
-exit
 
 router ospf 1
  router-id 10.3.3.3
-  
  default-information originate
 exit
 
-
-
+//создаем crypto polycy с настройками шифрования фазы 1. Набор способов шифрования выбран произвольным образом.
 
 crypto isakmp policy 1
  encr aes 256
@@ -172,6 +180,8 @@ crypto isakmp policy 1
  lifetime 86400 
 exit 
 
+//список preshared key на каждый узел, с которым будем устанавливать VPN
+
 crypto isakmp key 1234567890 address 10.100.100.2
 crypto isakmp key 1234567890 address 10.100.100.3
 crypto isakmp key 1234567890 address 80.82.1.1
@@ -179,18 +189,26 @@ crypto isakmp key 1234567890 address 70.70.70.1
 crypto isakmp key 1234567890 address 80.82.30.1
 crypto isakmp key 1234567890 address 60.64.20.1
 
+//ACL для связи Головного  Офиса и Село Ближнее
+
 ip access-list extended VPNF1
   permit ip 10.10.20.0 0.0.0.255 10.20.0.0 0.0.255.255
   permit ip 10.10.20.0 0.0.0.255 192.168.1.0 0.0.0.255
   permit ip 10.10.30.0 0.0.0.255 10.20.20.0 0.0.0.255
   permit ip 10.10.40.0 0.0.0.255 192.168.1.0 0.0.0.255
-  
+
+//ACL для связи Головного  Офиса и Посёлок дальний
+
 ip access-list extended VPNF2
   permit ip 10.10.20.0  0.0.0.255 10.30.20.0 0.0.0.255
   permit ip 10.10.30.0 0.0.0.255 10.30.30.0 0.0.0.255
   permit ip 10.10.40.0 0.0.0.255 10.30.10.0 0.0.0.255
-  
+
+// создаёт набор преобразований IPsec. Поскольку выбор набора алгоритмов шифрования создавался через рандомайзер, нам выпали устаревшие, не считающиеся надёжными des и sha-1. В реальных условиях не рекомендуется ими пользоваться. Но шифровать мы будем весь трафик, а не только заголовок AH
+
 crypto ipsec transform-set VPNF1 esp-sha-hmac esp-des
+
+// саздаем crypto-map для IPSEC с набором IKEv1 и разными приоритетма для доступа к нескольким узлам через один интерфейс
 
 crypto map MAPF1 10 ipsec-isakmp 
  set peer 10.100.100.2
@@ -206,6 +224,8 @@ exit
 
 int E0/0 
  crypto map MAPF1 
+
+//для связи Головного офиса будут построены eGRP тунели, заранее занижаем MTU и MSS для избежанияя фрагментации. Поскольку используем NAT-T, то инициатором подключений выстпует CORE.
 
 interface Tun11
  ip address 172.16.11.1 255.255.255.252
@@ -238,9 +258,13 @@ interface Tun15
  tunnel destination 60.64.20.1
 exit 
 
+//создаем transform-set для защиты GRE-тунелей
+
 crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
  mode transport
 exit 
+
+// определяем параметры для тунелей
 
 crypto ipsec profile GREPROF
  set transform-set VPNTUN 
@@ -258,7 +282,7 @@ interface Tun14
 interface Tun15
  tunnel protection ipsec profile GREPROF
 
-
+//настройка отслеживания состояния VPN с помощью IP SLA
 
 ip sla 10
  icmp-echo 10.100.100.2 source-interface E0/0
@@ -296,6 +320,8 @@ ip sla 16
  timeout 5000
 exit
 
+//связываем отслеживание доступности (track) с IP SLA
+
 track 10 ip sla 10 reachability
 track 11 ip sla 11 reachability
 track 12 ip sla 12 reachability
@@ -304,12 +330,16 @@ track 14 ip sla 14 reachability
 track 15 ip sla 15 reachability
 track 16 ip sla 16 reachability
 
+//запускам вечный пинг
+
 ip sla schedule 10 life forever start-time now
 ip sla schedule 11 life forever start-time now
 ip sla schedule 12 life forever start-time now
 ip sla schedule 14 life forever start-time now 
 ip sla schedule 15 life forever start-time now 
 ip sla schedule 16 life forever start-time now
+
+//маршруты для доступа в VPN завязанные на резулььтатах мониторинга IP Sla должны дать нам отказоустойчивость и автоматическое переключение в случае недоступности
  
 ip route 10.20.0.0 255.255.0.0 10.100.100.2 track 10
 ip route 10.20.0.0 255.255.0.0 172.16.11.2 track 11 
