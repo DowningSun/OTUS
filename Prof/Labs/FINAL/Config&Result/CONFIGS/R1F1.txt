@@ -5,12 +5,16 @@ no ip domain-lookup
 
 host R1F1
 
+//назначаем интерфейс к провайдеру RT, включаем NAT
+
 int E0/0
  des TOR2RT
  ip add 80.82.1.1 255.255.255.252
  no sh
  ip nat outside
 exit
+
+//назначчаем интерфейс к провайдеру KV и включаем NAT
 
 int E0/1
  des TOR1KV
@@ -19,16 +23,22 @@ int E0/1
  ip nat outside
 exit
 
+// интерфейс, симулирующий доступ к L2VPN провайдера. Адрес для сооздания сети, без NAT.
+
 interface E0/2
  description toCORE
  ip address 10.100.100.2 255.255.255.240
  no shutdown
 exit 
 
+//Интерфейс доступа из локальной сети
+
 int E0/3
  no sh 
  ip nat inside
 exit 
+
+//Запускаем внутренние сети по VLAN
 
 int E0/3.1
  encap dot1q 10
@@ -51,6 +61,8 @@ int E0/3.3
  no sh
 exit
 
+// ACL для доступа через NAT (permin), и без NAT (deny для VPN)
+
 ip access-list extended NAT_RULE
  deny ip 10.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255
  deny ip 192.168.1.0 0.0.0.255 10.10.40.0 0.0.0.255
@@ -59,12 +71,16 @@ ip access-list extended NAT_RULE
  permit ip 192.168.1.0 0.0.0.255 any 
 exit 
 
+//Назначаем ACL для NAT(PAT)
+
 ip nat inside source list NAT_RULE interface E0/0 overload   
 ip nat inside source list NAT_RULE interface E0/1 overload 
 
+//маршруты по-умолчаниюю для "доступа в интернет" с приоритетами.
 ip route 0.0.0.0 0.0.0.0 80.82.1.2 10
 ip route 0.0.0.0 0.0.0.0 70.70.70.2 20
 
+//создаем DHCP пулы для внутренней сети, в VOIP транслируем option 150 для получения адреса сервера VOIP
 ip dhcp pool VLAN10
  network 192.168.1.0 255.255.255.0
  default-router 192.168.1.253
@@ -87,11 +103,14 @@ ip dhcp pool VLAN30_VOIP
  lease 7
 exit
 
+//отделяем первые 20 адресов из DHCP пула для резерва в статику
+
 ip dhcp excluded-address 192.168.1.1 192.168.1.20
 ip dhcp excluded-address 10.20.10.1 10.20.10.20
 ip dhcp excluded-address 10.20.20.1 10.20.20.20
 
 
+//создаем crypto polycy с настройками шифрования фазы 1. Набор способо шифрования выбран произвольным образом.
 
 crypto isakmp policy 1
  encr aes 256
@@ -101,6 +120,8 @@ crypto isakmp policy 1
  lifetime 86400 
 exit 
 
+//список preshared key на каждый узел, с которым будем устанавливать VPN
+
 crypto isakmp key 1234567890 address 10.100.100.1
 crypto isakmp key 1234567890 address 10.100.100.3
 crypto isakmp key 1234567890 address 80.82.30.1
@@ -108,23 +129,30 @@ crypto isakmp key 1234567890 address 60.64.20.1
 crypto isakmp key 1234567890 address 90.40.60.140
 crypto isakmp key 1234567890 address 80.82.1.5
 
+//ACL для связи Головного  Офиса и Село Ближнее
+
 ip access-list extended VPNCORE
   permit ip 10.20.0.0 0.0.255.255 10.10.20.0 0.0.0.255 
   permit ip 192.168.1.0 0.0.0.255 10.10.20.0 0.0.0.255 
   permit ip 10.20.20.0 0.0.0.255 10.10.30.0 0.0.0.255 
   permit ip 192.168.1.0 0.0.0.255 10.10.40.0 0.0.0.255 
 
+//ACL для связи  Село Ближнее и Поселок Дальний
 ip access-list extended VPNR2F2
   permit ip 10.20.20.0  0.0.0.255 10.30.30.0 0.0.0.255
   
-  
+// создаёт набор преобразований IPsec. Поскольку выбор набора алгоритмов шифрования создавался через рандомайзер, нам выпали устаревшие, не считающиеся надёжными des и sha-1. В реальных условиях не рекомендуется ими пользоваться. Но шифровать мы будем весь трафик, а не только заголовок AH
+
 crypto ipsec transform-set VPNCORE esp-sha-hmac esp-des
 
+// саздаем crypto-map для IPSEC с набором IKEv1
 crypto map MAPCORE 10 ipsec-isakmp 
  set peer 10.100.100.1
  set transform-set VPNCORE 
  match address VPNCORE 
 exit 
+
+//поскольку на один интерфейс можно назначить только 1 crypto-map, но создаём ещё одну с более низким (чем ниже значение - тем выше приоритет) приоритетом, для соединения нескольких каналов на одном интерфейсе
 
 crypto map MAPCORE 20 ipsec-isakmp 
  set peer 10.100.100.3
@@ -132,10 +160,13 @@ crypto map MAPCORE 20 ipsec-isakmp
  match address VPNR2F2 
 exit 
 
+//привязываем crypto-map к интерфейсу, ведущему в VPN сеть провайдера
+
 int E0/2 
  crypto map MAPCORE
 exit 
 
+//ещё две crypto map, на этот раз для связи через интернет
 
 crypto map MAPR2F2 10 ipsec-isakmp 
  set peer 80.82.30.1
@@ -156,7 +187,9 @@ exit
 int E0/1 
  crypto map MAP2R2F2
 exit 
- 
+
+//для связи с Головным офисом будут построены eGRP тунели, заранее занижаем MTU и MSS для избежанияя фрагментации. Примечательно, что будем использовать адрес внешний адрес маршрутизаторов головного офиса, а поднимать тунель с коммутатором ядра за счёт NAT-T
+
 interface Tun11
  ip address 172.16.11.2 255.255.255.252
  ip mtu 1476
@@ -171,21 +204,27 @@ interface Tun12
  tunnel source 70.70.70.1
  tunnel destination 80.82.1.5
 
+//создаем transform-set для защиты GRE-тунелей
 
 crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
  mode transport
 exit 
+// определяем параметры для тунелей
 
 crypto ipsec profile GREPROF
  set transform-set VPNTUN 
 exit 
+
+//привязываем ранее созданый набор параметров к тунелям 
 
 interface Tun11
  tunnel protection ipsec profile GREPROF
 
 interface Tun12
  tunnel protection ipsec profile GREPROF
- 
+
+//настройка отслеживания состояния тунелей с помощью IP SLA
+
 ip sla 10
  icmp-echo 10.100.100.1 source-interface E0/2
  frequency 5
@@ -222,6 +261,7 @@ ip sla 22
  timeout 5000
 exit
 
+//связываем отслеживание доступности (track) с IP SLA
 
 track 10 ip sla 10 reachability
 track 11 ip sla 11 reachability
@@ -231,12 +271,16 @@ track 13 ip sla 13 reachability
 track 21 ip sla 21 reachability
 track 22 ip sla 22 reachability
 
+//запускам вечный пинг
+
 ip sla schedule 10 life forever start-time now
 ip sla schedule 11 life forever start-time now
 ip sla schedule 12 life forever start-time now
 ip sla schedule 13 life forever start-time now
 ip sla schedule 21 life forever start-time now
 ip sla schedule 22 life forever start-time now 
+
+//маршруты для доступа в VPN завязанные на резулььтатах мониторинга IP Sla должны дать нам отказоустойчивость и автоматическое переключение в случае недоступности
 
 ip route 10.10.0.0 255.255.0.0 10.100.100.1 track 10
 ip route 10.10.0.0 255.255.0.0 172.16.11.1 track 11 
