@@ -10,12 +10,16 @@ int Lo1
  ip address 10.1.1.1 255.255.255.255
 exit 
 
+// задаём интерфейс доступа в "интернет"
+
 int E0/0
  des TOR1INF
  no sh
  ip add 90.40.60.140 255.255.255.240 
  ip nat outside
 exit
+
+//задаём интерфейс E0/1 как часть HSRP-группы, задействованной в маршрутизации, NAT, и OSPF для обмена маршрутами к внутренней  сети.
 
 interface E0/1
  des TOCORE
@@ -24,10 +28,12 @@ interface E0/1
  standby 1 ip 10.10.255.248
  standby 1 priority 110
  standby 1 preempt
- standby 1 track 1 decrement 30
+ standby 1 track 1 decrement 30   //Если track 1 станет down — приоритет уменьшится на 30
  ip ospf 1 area 10
  ip nat inside
 exit
+
+//ACL для NAT
 
 ip access-list extended NAT_RULE
  deny ip 10.10.0.0 0.0.255.255 10.20.0.0 0.0.255.255
@@ -35,7 +41,11 @@ ip access-list extended NAT_RULE
  permit ip 10.10.0.0 0.0.255.255 any
 exit 
 
+//запускам NAT(PAT)
+
 ip nat inside source list NAT_RULE interface E0/0 overload
+
+//трекер доступности узла из "интернета". Используется для регшулирования приоритета в HSRP
 
 ip sla 1
  icmp-echo 77.88.8.8 source-interface E0/1
@@ -47,7 +57,11 @@ ip sla schedule 1 life forever start-time now
 
 track 1 ip sla 1 reachability
 
+//маршрут по умолчания в "интернет"
+
 ip route 0.0.0.0 0.0.0.0 90.40.60.139
+
+//ospf чтобы не писать ip route во внутренние сети
 
 router ospf 1
  router-id 10.1.1.1
