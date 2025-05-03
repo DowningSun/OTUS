@@ -5,17 +5,23 @@ no ip domain-lookup
 
 host R1KV
 
+//интерфейс для доступа клиента
+
 int E0/2
  des TOR1INF
  ip add 14.14.14.1 255.255.255.252
  no sh
 exit
 
+//интерфейс для доступа к провайдеру RT
+
 int E0/1
  des TOR1F1
  ip add 70.70.70.2 255.255.255.252
  no sh
 exit
+
+//bgp для обмена маршрутами между сетими
 
 router bgp 102
  bgp log-neighbor-changes
