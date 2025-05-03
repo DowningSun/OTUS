@@ -5,6 +5,8 @@ no ip domain-lookup
 
 host R1F2
 
+//конфиг портов для доступа в "интернет" + NAT
+
 int e0/0
  des TOR3RT
  ip add 80.82.30.1 255.255.255.252
@@ -18,6 +20,8 @@ int E0/1
  no sh
  ip nat outside
 exit 
+
+//конфиг портов VLAN+NAT
 
 int E0/3
  no sh 
@@ -51,6 +55,8 @@ int E0/3.3
  ip nat inside
 exit
 
+//ACL для доступа в интернет через NAT, и правила для VPN трафика, по которому он не должен быть преобразован
+
 ip access-list extended NAT_RULE
  deny ip 10.30.0.0 0.0.255.255 10.10.0.0 0.0.255.255
  deny ip 10.30.0.0 0.0.255.255 10.20.0.0 0.0.255.255
@@ -59,13 +65,17 @@ ip access-list extended NAT_RULE
  permit ip 10.30.2.0 0.0.0.255 any 
  permit ip 10.30.3.0 0.0.0.255 any 
 
+//привязываем правило к интерфейсам для NAT(PAT)
 
 ip nat inside source list NAT_RULE interface E0/0 overload   
 ip nat inside source list NAT_RULE interface E0/1 overload   
 
+//маршруты по умолчанию для доступа в "интернет"
+
 ip route 0.0.0.0 0.0.0.0 80.82.30.2 10
 ip route 0.0.0.0 0.0.0.0 60.64.20.2 20
 
+//DHCP пулы
 
 ip dhcp pool VLAN10
  network 10.30.10.0 255.255.255.0
@@ -94,6 +104,7 @@ ip dhcp excluded-address 10.30.20.1 10.30.20.20
 ip dhcp excluded-address 10.30.30.1 10.30.30.20
 
 
+//создаем crypto polycy с настройками шифрования фазы 1. Набор способо шифрования выбран произвольным образом. Идентичен на всех узлах, а не только парах, на которых устанавливается соединение. В случае нескольких политик система осуществляет "перебор" до совпадения наборов на узлах.
 
 crypto isakmp policy 1
  encr aes 256
@@ -103,23 +114,33 @@ crypto isakmp policy 1
  lifetime 86400 
 exit 
 
+////список preshared key на каждый узел, с которым будем устанавливать VPN
+
 crypto isakmp key 1234567890 address 10.100.100.1
 crypto isakmp key 1234567890 address 10.100.100.2
 crypto isakmp key 1234567890 address 90.40.60.140
 crypto isakmp key 1234567890 address 80.82.1.5
 crypto isakmp key 1234567890 address 80.82.1.1
 crypto isakmp key 1234567890 address 70.70.70.1
-  
+
+// создаёт набор преобразований IPsec. Поскольку выбор набора алгоритмов шифрования создавался через рандомайзер, нам выпали устаревшие, не считающиеся надёжными des и sha-1. В реальных условиях не рекомендуется ими пользоваться. Но шифровать мы будем весь трафик, а не только заголовок AH
+
 crypto ipsec transform-set VPNCORE esp-sha-hmac esp-des
+
+//ACL для связи Головного  Офиса и Посёлок Дальний
 
 ip access-list extended VPNCORE
   permit ip 10.30.10.0  0.0.0.255 10.10.40.0 0.0.0.255
   permit ip 10.30.30.0 0.0.0.255 10.10.30.0 0.0.0.255
   permit ip 10.30.20.0 0.0.0.255 10.10.0.0 0.0.255.255
   permit ip 10.30.20.0 0.0.0.255 10.10.20.0 0.0.0.255
-  
+
+//ACL для связи  Село Ближнее и Поселок Дальний
+
 ip access-list extended VPNF2
   permit ip 10.30.30.0 0.0.0.255 10.20.20.0 0.0.0.255 
+
+// саздаем crypto-map для IPSEC с набором IKEv1 и привязываем к интерфейсам
 
 crypto map MAPCORE 10 ipsec-isakmp 
  set peer 10.100.100.1
@@ -158,6 +179,7 @@ INT E0/1
  crypto map MAP3F2
 exit 
 
+//создаём IP Sla для мониторинга связи с узлами VPN
 
 ip sla 10
  icmp-echo 10.100.100.1 source-interface E0/2
@@ -195,6 +217,8 @@ ip sla 22
  timeout 5000
 exit
 
+//для связи с Головным офисом будут построены eGRP тунели, заранее занижаем MTU и MSS для избежанияя фрагментации.
+
 interface Tun14
  ip address 172.16.14.2 255.255.255.252
  ip mtu 1476
@@ -210,6 +234,8 @@ interface Tun15
  tunnel destination 90.40.60.140
 exit 
 
+//создаем transform-set для защиты GRE-тунелей
+
 crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
  mode transport
 exit 
@@ -223,13 +249,17 @@ interface Tun14
 
 interface Tun15
  tunnel protection ipsec profile GREPROF
- 
+
+//связываем отслеживание доступности (track) с IP SLA
+
 track 10 ip sla 10 reachability
 track 13 ip sla 13 reachability
 track 14 ip sla 14 reachability
 track 15 ip sla 15 reachability
 track 21 ip sla 21 reachability
 track 22 ip sla 22 reachability
+
+//запускам вечный пинг
 
 ip sla schedule 10 life forever start-time now
 ip sla schedule 13 life forever start-time now
@@ -238,7 +268,7 @@ ip sla schedule 15 life forever start-time now
 ip sla schedule 21 life forever start-time now
 ip sla schedule 22 life forever start-time now
 
-
+//маршруты для доступа в VPN завязанные на резулььтатах мониторинга IP Sla должны дать нам отказоустойчивость и автоматическое переключение в случае недоступности
 
 ip route 10.10.0.0 255.255.0.0 10.100.100.1 track 10
 
