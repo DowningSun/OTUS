@@ -11,7 +11,9 @@ vlan 20
  name Local2
 vlan 30
  name VOIP
- 
+
+//Коммутатор доступа, который просто распределяет трафик от разных VLAN к маршрутизатору.
+
 interface E0/3
  description toR1F1
  switchport trunk encapsulation dot1q
