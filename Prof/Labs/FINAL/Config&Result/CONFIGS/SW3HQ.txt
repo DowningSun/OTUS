@@ -1,0 +1,67 @@
+en
+conf t 
+
+no ip domain-lookup
+
+host SW3
+
+spanning-tree mode rapid-pvst
+
+vlan 10
+ name LocalHQ
+vlan 20
+ name ITMAN
+vlan 30
+ name Voip
+vlan 40
+ name SERVER
+vlan 50
+ name RES1
+vlan 60
+ name RES2
+
+interface E0/3
+ description toCore
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ duplex full
+ no shutdown
+exit
+
+interface E0/1
+ description toSW2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+exit 
+
+
+interface E0/2
+ description toSW4
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+exit
+
+interface E0/0
+ description Local
+ switchport mode access
+ switchport access vlan 10
+  no shutdown
+exit 
+
+interface E1/0
+ description VoIP
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+exit
+
+clock timezone MSK 3
+ntp server 10.10.10.254 prefer

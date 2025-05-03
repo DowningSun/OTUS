@@ -1,0 +1,324 @@
+en
+conf t
+
+no ip domain-lookup
+
+hostname Core
+
+ip routing
+
+vlan 10
+ name LocalHQ
+vlan 20
+ name ITMAN
+vlan 30
+ name Voip
+vlan 40
+ name SERVER
+vlan 50
+ name RES1
+vlan 60
+ name RES2
+vlan 999
+ 
+interface Vlan10
+ ip address 10.10.10.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+
+interface Vlan20
+ ip address 10.10.20.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+interface Vlan30
+ ip address 10.10.30.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+interface Vlan40
+ ip address 10.10.40.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+interface Vlan50
+ ip address 10.10.50.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+interface Vlan60
+ ip address 10.10.60.254 255.255.255.0
+ ip ospf 1 area 10
+ no shutdown
+
+int VLAN999
+ ip address 10.10.255.3 255.255.255.0
+ ip ospf 1 area 10
+ no sh  
+
+interface E0/0
+ no switchport
+ description toR1F1
+ ip address 10.100.100.1 255.255.255.240
+ no shutdown
+ duplex half
+exit 
+ 
+interface E0/1
+ description toR1
+ switchport 
+ switchport mode access
+ switchport access vlan 999
+ duplex half
+ no sh
+exit
+
+interface E0/2 
+ description toR2
+ switchport 
+ switchport mode access
+ switchport access vlan 999
+ duplex half
+ no shutdown
+exit 
+
+interface E1/0
+ description ToSW2
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ duplex half
+ no shutdown
+exit 
+
+interface E1/1
+ description ToSW3
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+ duplex half
+exit
+
+interface E1/3
+ description Link to Access Switch 3
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+ duplex half
+exit 
+
+spanning-tree mode rapid-pvst
+
+ip dhcp pool VLAN10-Local
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.254
+ dns-server 8.8.8.8 8.8.4.4
+ domain-name HQ.Local
+
+
+ip dhcp pool VLAN20-IT
+ network 10.10.20.0 255.255.255.0
+ default-router 10.10.20.254
+ dns-server 8.8.8.8 8.8.4.4
+ domain-name IT.local
+
+ip dhcp pool VLAN30-VOIP
+ network 10.10.30.0 255.255.255.0
+ default-router 10.10.30.254
+ dns-server 8.8.8.8 8.8.4.4
+ domain-name VOIP.local
+
+ip dhcp excluded-address 10.10.10.1 10.10.10.50
+ip dhcp excluded-address 10.10.20.1 10.10.20.50
+ip dhcp excluded-address 10.10.30.1 10.10.30.50
+
+
+
+ip route 0.0.0.0 0.0.0.0 10.10.255.248
+
+clock timezone MSK 3
+
+ntp server 194.190.168.1 prefer
+ntp server 95.79.30.113
+
+ntp source Vlan10
+
+ip access-list standard 10
+ permit 194.190.168.1
+ permit 95.79.30.113
+ deny any
+exit
+
+router ospf 1
+ router-id 10.3.3.3
+  
+ default-information originate
+exit
+
+
+
+
+crypto isakmp policy 1
+ encr aes 256
+ hash sha
+ authentication pre-share
+ group 14
+ lifetime 86400 
+exit 
+
+crypto isakmp key 1234567890 address 10.100.100.2
+crypto isakmp key 1234567890 address 10.100.100.3
+crypto isakmp key 1234567890 address 80.82.1.1
+crypto isakmp key 1234567890 address 70.70.70.1
+crypto isakmp key 1234567890 address 80.82.30.1
+crypto isakmp key 1234567890 address 60.64.20.1
+
+ip access-list extended VPNF1
+  permit ip 10.10.20.0 0.0.0.255 10.20.0.0 0.0.255.255
+  permit ip 10.10.20.0 0.0.0.255 192.168.1.0 0.0.0.255
+  permit ip 10.10.30.0 0.0.0.255 10.20.20.0 0.0.0.255
+  permit ip 10.10.40.0 0.0.0.255 192.168.1.0 0.0.0.255
+  
+ip access-list extended VPNF2
+  permit ip 10.10.20.0  0.0.0.255 10.30.20.0 0.0.0.255
+  permit ip 10.10.30.0 0.0.0.255 10.30.30.0 0.0.0.255
+  permit ip 10.10.40.0 0.0.0.255 10.30.10.0 0.0.0.255
+  
+crypto ipsec transform-set VPNF1 esp-sha-hmac esp-des
+
+crypto map MAPF1 10 ipsec-isakmp 
+ set peer 10.100.100.2
+ set transform-set VPNF1 
+ match address VPNF1 
+exit 
+
+crypto map MAPF1 20 ipsec-isakmp 
+ set peer 10.100.100.3
+ set transform-set VPNF1 
+ match address VPNF2 
+exit 
+
+int E0/0 
+ crypto map MAPF1 
+
+interface Tun11
+ ip address 172.16.11.1 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 10.10.255.3
+ tunnel destination 80.82.1.1
+exit 
+
+interface Tun12
+ ip address 172.16.12.1 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 10.10.255.3
+ tunnel destination 70.70.70.1
+exit 
+ 
+interface Tun14
+ ip address 172.16.14.1 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 10.10.255.3
+ tunnel destination 80.82.1.5 
+exit
+interface Tun15
+ ip address 172.16.15.1 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 10.10.255.3
+ tunnel destination 60.64.20.1
+exit 
+
+crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
+ mode transport
+exit 
+
+crypto ipsec profile GREPROF
+ set transform-set VPNTUN 
+exit 
+
+interface Tun11
+ tunnel protection ipsec profile GREPROF
+
+interface Tun12
+ tunnel protection ipsec profile GREPROF
+
+interface Tun14
+ tunnel protection ipsec profile GREPROF
+ 
+interface Tun15
+ tunnel protection ipsec profile GREPROF
+
+
+
+ip sla 10
+ icmp-echo 10.100.100.2 source-interface E0/0
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 11
+ icmp-echo 172.16.11.2 source-interface Tun11
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 12
+ icmp-echo 172.16.12.2 source-interface Tun12
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 14
+ icmp-echo 172.16.14.2 source-interface Tun14
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 15
+ icmp-echo 172.16.15.2 source-interface Tun15
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 16
+ icmp-echo 10.100.100.3 source-interface Tun15
+ frequency 5
+ timeout 5000
+exit
+
+track 10 ip sla 10 reachability
+track 11 ip sla 11 reachability
+track 12 ip sla 12 reachability
+
+track 14 ip sla 14 reachability
+track 15 ip sla 15 reachability
+track 16 ip sla 16 reachability
+
+ip sla schedule 10 life forever start-time now
+ip sla schedule 11 life forever start-time now
+ip sla schedule 12 life forever start-time now
+ip sla schedule 14 life forever start-time now 
+ip sla schedule 15 life forever start-time now 
+ip sla schedule 16 life forever start-time now
+ 
+ip route 10.20.0.0 255.255.0.0 10.100.100.2 track 10
+ip route 10.20.0.0 255.255.0.0 172.16.11.2 track 11 
+ip route 10.20.0.0 255.255.0.0 172.16.12.2 track 12 
+
+ip route 192.168.1.0 255.255.255.0 10.100.100.2 track 10
+ip route 192.168.1.0 255.255.255.0 172.16.11.2 track 11 
+ip route 192.168.1.0 255.255.255.0 172.16.12.2 track 12 
+
+ip route 10.30.0.0 255.255.0.0 10.100.100.3 track 16
+ip route 10.30.0.0 255.255.0.0 172.16.14.2 track 14
+ip route 10.30.0.0 255.255.0.0 172.16.15.2 track 15

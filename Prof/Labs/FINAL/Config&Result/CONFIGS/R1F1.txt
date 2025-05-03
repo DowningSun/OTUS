@@ -1,0 +1,247 @@
+en
+conf t
+
+no ip domain-lookup
+
+host R1F1
+
+int E0/0
+ des TOR2RT
+ ip add 80.82.1.1 255.255.255.252
+ no sh
+ ip nat outside
+exit
+
+int E0/1
+ des TOR1KV
+ ip add 70.70.70.1 255.255.255.252
+ no sh
+ ip nat outside
+exit
+
+interface E0/2
+ description toCORE
+ ip address 10.100.100.2 255.255.255.240
+ no shutdown
+exit 
+
+int E0/3
+ no sh 
+ ip nat inside
+exit 
+
+int E0/3.1
+ encap dot1q 10
+ ip add 192.168.1.253 255.255.255.0
+ ip nat inside
+ no sh
+exit
+
+int E0/3.2
+ encap dot1q 20
+ ip add 10.20.10.1 255.255.255.0
+ ip nat inside
+ no sh
+exit
+
+int E0/3.3
+ encap dot1q 30
+ ip add 10.20.20.1 255.255.255.0
+ ip nat inside
+ no sh
+exit
+
+ip access-list extended NAT_RULE
+ deny ip 10.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 192.168.1.0 0.0.0.255 10.10.40.0 0.0.0.255
+ deny ip 10.20.20.0 0.0.0.255 10.30.30.0 0.0.0.255
+ permit ip 10.20.0.0 0.0.255.255 any
+ permit ip 192.168.1.0 0.0.0.255 any 
+exit 
+
+ip nat inside source list NAT_RULE interface E0/0 overload   
+ip nat inside source list NAT_RULE interface E0/1 overload 
+
+ip route 0.0.0.0 0.0.0.0 80.82.1.2 10
+ip route 0.0.0.0 0.0.0.0 70.70.70.2 20
+
+ip dhcp pool VLAN10
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.253
+ dns-server 8.8.8.8
+ lease 7
+exit 
+
+ip dhcp pool VLAN20
+ network 10.20.10.0 255.255.255.0
+ default-router 10.20.10.1
+ dns-server 8.8.8.8
+ lease 7
+exit 
+
+ip dhcp pool VLAN30_VOIP
+ network 10.20.20.0 255.255.255.0
+ default-router 10.20.20.1
+ dns-server 8.8.8.8
+ option 150 ip 10.20.10.10
+ lease 7
+exit
+
+ip dhcp excluded-address 192.168.1.1 192.168.1.20
+ip dhcp excluded-address 10.20.10.1 10.20.10.20
+ip dhcp excluded-address 10.20.20.1 10.20.20.20
+
+
+
+crypto isakmp policy 1
+ encr aes 256
+ hash sha
+ authentication pre-share
+ group 14
+ lifetime 86400 
+exit 
+
+crypto isakmp key 1234567890 address 10.100.100.1
+crypto isakmp key 1234567890 address 10.100.100.3
+crypto isakmp key 1234567890 address 80.82.30.1
+crypto isakmp key 1234567890 address 60.64.20.1
+crypto isakmp key 1234567890 address 90.40.60.140
+crypto isakmp key 1234567890 address 80.82.1.5
+
+ip access-list extended VPNCORE
+  permit ip 10.20.0.0 0.0.255.255 10.10.20.0 0.0.0.255 
+  permit ip 192.168.1.0 0.0.0.255 10.10.20.0 0.0.0.255 
+  permit ip 10.20.20.0 0.0.0.255 10.10.30.0 0.0.0.255 
+  permit ip 192.168.1.0 0.0.0.255 10.10.40.0 0.0.0.255 
+
+ip access-list extended VPNR2F2
+  permit ip 10.20.20.0  0.0.0.255 10.30.30.0 0.0.0.255
+  
+  
+crypto ipsec transform-set VPNCORE esp-sha-hmac esp-des
+
+crypto map MAPCORE 10 ipsec-isakmp 
+ set peer 10.100.100.1
+ set transform-set VPNCORE 
+ match address VPNCORE 
+exit 
+
+crypto map MAPCORE 20 ipsec-isakmp 
+ set peer 10.100.100.3
+ set transform-set VPNCORE 
+ match address VPNR2F2 
+exit 
+
+int E0/2 
+ crypto map MAPCORE
+exit 
+
+
+crypto map MAPR2F2 10 ipsec-isakmp 
+ set peer 80.82.30.1
+ set transform-set VPNCORE 
+ match address VPNR2F2
+
+int E0/0
+ crypto map MAPR2F2
+exit 
+
+
+crypto map MAP2R2F2 10 ipsec-isakmp 
+ set peer 60.64.20.11
+ set transform-set VPNCORE 
+ match address VPNR2F2  
+exit 
+
+int E0/1 
+ crypto map MAP2R2F2
+exit 
+ 
+interface Tun11
+ ip address 172.16.11.2 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 80.82.1.1
+ tunnel destination 90.40.60.140
+
+interface Tun12
+ ip address 172.16.12.2 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 70.70.70.1
+ tunnel destination 80.82.1.5
+
+
+crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
+ mode transport
+exit 
+
+crypto ipsec profile GREPROF
+ set transform-set VPNTUN 
+exit 
+
+interface Tun11
+ tunnel protection ipsec profile GREPROF
+
+interface Tun12
+ tunnel protection ipsec profile GREPROF
+ 
+ip sla 10
+ icmp-echo 10.100.100.1 source-interface E0/2
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 11
+ icmp-echo 172.16.11.1 source-interface Tun11
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 12
+ icmp-echo 172.16.12.1 source-interface Tun12
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 13
+ icmp-echo 10.100.100.3 source-interface E0/2
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 21
+ icmp-echo 80.82.30.1 source-interface E0/0
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 22
+ icmp-echo 60.64.20.1 source-interface E0/1
+ frequency 5
+ timeout 5000
+exit
+
+
+track 10 ip sla 10 reachability
+track 11 ip sla 11 reachability
+track 12 ip sla 12 reachability
+
+track 13 ip sla 13 reachability
+track 21 ip sla 21 reachability
+track 22 ip sla 22 reachability
+
+ip sla schedule 10 life forever start-time now
+ip sla schedule 11 life forever start-time now
+ip sla schedule 12 life forever start-time now
+ip sla schedule 13 life forever start-time now
+ip sla schedule 21 life forever start-time now
+ip sla schedule 22 life forever start-time now 
+
+ip route 10.10.0.0 255.255.0.0 10.100.100.1 track 10
+ip route 10.10.0.0 255.255.0.0 172.16.11.1 track 11 
+ip route 10.10.0.0 255.255.0.0 172.16.12.1 track 12 
+
+ip route 10.30.0.0 255.255.0.0 10.100.100.3 track 13
+ip route 10.30.0.0 255.255.0.0 80.82.30.1 track 21
+ip route 10.30.0.0 255.255.0.0 60.64.20.1 track 22

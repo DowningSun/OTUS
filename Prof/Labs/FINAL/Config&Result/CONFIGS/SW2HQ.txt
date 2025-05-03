@@ -1,0 +1,48 @@
+en
+conf t
+
+host SQ2HQ
+
+no ip domain-lookup
+
+vlan 10
+ name LocalHQ
+vlan 20
+ name ITMAN
+vlan 30
+ name Voip
+vlan 40
+ name SERVER
+vlan 50
+ name RES1
+vlan 60
+ name RES2
+ 
+interface E0/2
+ description toCore
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ duplex full
+ no shutdown
+exit 
+
+interface E0/1
+ description Link to SW3
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ spanning-tree portfast trunk
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+exit 
+
+interface range E0/0, E0/3 
+ description IT
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+exit
+
+clock timezone MSK 3
+ntp server 10.10.10.254 prefer

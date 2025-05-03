@@ -1,0 +1,23 @@
+en
+conf t
+
+no ip domain-lookup
+
+host R1KV
+
+int E0/2
+ des TOR1INF
+ ip add 14.14.14.1 255.255.255.252
+ no sh
+exit
+
+int E0/1
+ des TOR1F1
+ ip add 70.70.70.2 255.255.255.252
+ no sh
+exit
+
+router bgp 102
+ bgp log-neighbor-changes
+ neighbor 14.14.14.2 remote-as 103
+ network 70.70.70.0 mask 255.255.255.252

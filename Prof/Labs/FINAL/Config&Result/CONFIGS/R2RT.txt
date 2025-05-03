@@ -1,0 +1,54 @@
+en
+conf t
+
+no ip domain-lookup
+
+host R2RT
+
+int Lo0
+ ip add 2.2.2.2 255.255.255.255
+ ip router isis
+exit
+
+int E0/0
+ des TOR1F1
+ ip add 80.82.1.2 255.255.255.252
+ no sh
+exit
+
+int E0/1
+ des TOR1INF
+ ip add 13.13.13.2 255.255.255.252
+ no sh
+exit
+
+int e0/2
+ des TOR3RT
+ ip add 11.11.11.9 255.255.255.252
+ no sh
+ ip router isis
+exit 
+
+int e0/3
+ des TOR1RT
+ ip add 11.11.11.5 255.255.255.252
+ no sh
+ ip router isis
+exit 
+
+router isis
+ net 49.0001.0002.0002.0002.00  
+ is-type level-2
+ log-adjacency-changes 
+ passive-interface Lo0
+ 
+router bgp 101
+ bgp log-neighbor-changes
+ neighbor 1.1.1.1 remote-as 101
+ neighbor 1.1.1.1 update-source Loopback0
+ neighbor 1.1.1.1 next-hop-self
+ neighbor 3.3.3.3 remote-as 101
+ neighbor 3.3.3.3 update-source Loopback0
+ neighbor 3.3.3.3 next-hop-self
+ neighbor 13.13.13.1 remote-as 103
+ network 80.82.1.0 mask 255.255.255.252

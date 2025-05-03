@@ -1,0 +1,252 @@
+en 
+conf t
+
+no ip domain-lookup
+
+host R1F2
+
+int e0/0
+ des TOR3RT
+ ip add 80.82.30.1 255.255.255.252
+ no sh
+ ip nat outside
+exit 
+
+int E0/1
+ des TOR12LN
+ ip add 60.64.20.1 255.255.255.252
+ no sh
+ ip nat outside
+exit 
+
+int E0/3
+ no sh 
+ ip nat inside
+exit 
+
+int E0/2
+ des TOL2VPN
+ ip add 10.100.100.3 255.255.255.240
+ no sh
+exit 
+
+int E0/3.1
+ encap dot1q 10
+ ip add 10.30.10.1 255.255.255.0
+ no sh
+ ip nat inside
+exit
+
+int E0/3.2
+ encap dot1q 20
+ ip add 10.30.20.1 255.255.255.0
+ no sh
+ ip nat inside
+exit
+
+int E0/3.3
+ encap dot1q 30
+ ip add 10.30.30.1 255.255.255.0
+ no sh
+ ip nat inside
+exit
+
+ip access-list extended NAT_RULE
+ deny ip 10.30.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 10.30.0.0 0.0.255.255 10.20.0.0 0.0.255.255
+ permit ip 10.30.0.0 0.0.0.255 any
+ permit ip 10.30.1.0 0.0.0.255 any 
+ permit ip 10.30.2.0 0.0.0.255 any 
+ permit ip 10.30.3.0 0.0.0.255 any 
+
+
+ip nat inside source list NAT_RULE interface E0/0 overload   
+ip nat inside source list NAT_RULE interface E0/1 overload   
+
+ip route 0.0.0.0 0.0.0.0 80.82.30.2 10
+ip route 0.0.0.0 0.0.0.0 60.64.20.2 20
+
+
+ip dhcp pool VLAN10
+ network 10.30.10.0 255.255.255.0
+ default-router 10.30.10.1
+ dns-server 8.8.8.8
+ lease 7
+exit 
+
+ip dhcp pool VLAN20
+ network 10.30.20.0 255.255.255.0
+ default-router 10.30.20.1
+ dns-server 8.8.8.8
+ lease 7
+exit 
+
+ip dhcp pool VLAN30_VOIP
+ network 10.30.30.0 255.255.255.0
+ default-router 10.30.30.1
+ dns-server 8.8.8.8
+ option 150 ip 10.30.30.10
+ lease 7
+exit
+
+ip dhcp excluded-address 10.30.10.1 10.30.10.20
+ip dhcp excluded-address 10.30.20.1 10.30.20.20
+ip dhcp excluded-address 10.30.30.1 10.30.30.20
+
+
+
+crypto isakmp policy 1
+ encr aes 256
+ hash sha
+ authentication pre-share
+ group 14
+ lifetime 86400 
+exit 
+
+crypto isakmp key 1234567890 address 10.100.100.1
+crypto isakmp key 1234567890 address 10.100.100.2
+crypto isakmp key 1234567890 address 90.40.60.140
+crypto isakmp key 1234567890 address 80.82.1.5
+crypto isakmp key 1234567890 address 80.82.1.1
+crypto isakmp key 1234567890 address 70.70.70.1
+  
+crypto ipsec transform-set VPNCORE esp-sha-hmac esp-des
+
+ip access-list extended VPNCORE
+  permit ip 10.30.10.0  0.0.0.255 10.10.40.0 0.0.0.255
+  permit ip 10.30.30.0 0.0.0.255 10.10.30.0 0.0.0.255
+  permit ip 10.30.20.0 0.0.0.255 10.10.0.0 0.0.255.255
+  permit ip 10.30.20.0 0.0.0.255 10.10.20.0 0.0.0.255
+  
+ip access-list extended VPNF2
+  permit ip 10.30.30.0 0.0.0.255 10.20.20.0 0.0.0.255 
+
+crypto map MAPCORE 10 ipsec-isakmp 
+ set peer 10.100.100.1
+ set transform-set VPNCORE 
+ match address VPNCORE 
+exit 
+
+crypto map MAPCORE 20 ipsec-isakmp 
+ set peer 10.100.100.2
+ set transform-set VPNCORE 
+ match address VPNF2
+exit 
+
+int E0/2 
+ crypto map MAPCORE
+exit 
+
+
+crypto map MAP2F2 10 ipsec-isakmp 
+ set peer 80.82.1.1
+ set transform-set VPNCORE 
+ match address VPNF2
+exit 
+
+INT E0/0 
+ crypto map MAP2F2
+exit 
+
+crypto map MAP3F2 10 ipsec-isakmp 
+ set peer 70.70.70.1
+ set transform-set VPNCORE 
+ match address VPNF2
+exit 
+
+INT E0/1 
+ crypto map MAP3F2
+exit 
+
+
+ip sla 10
+ icmp-echo 10.100.100.1 source-interface E0/2
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 13
+ icmp-echo 10.100.100.2 source-interface E0/2
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 14
+ icmp-echo 172.16.14.1 source-interface Tun14
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 15
+ icmp-echo 172.16.15.1 source-interface Tun15
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 21
+ icmp-echo 80.82.1.1 source-interface E0/0
+ frequency 5
+ timeout 5000
+exit
+
+ip sla 22
+ icmp-echo 70.70.70.1 source-interface E0/1
+ frequency 5
+ timeout 5000
+exit
+
+interface Tun14
+ ip address 172.16.14.2 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 80.82.30.1
+ tunnel destination 80.82.1.5 
+exit
+interface Tun15
+ ip address 172.16.15.2 255.255.255.252
+ ip mtu 1476
+ ip tcp adjust-mss 1360
+ tunnel source 60.64.20.1
+ tunnel destination 90.40.60.140
+exit 
+
+crypto ipsec transform-set VPNTUN esp-sha-hmac esp-des
+ mode transport
+exit 
+
+crypto ipsec profile GREPROF
+ set transform-set VPNTUN 
+exit 
+
+interface Tun14
+ tunnel protection ipsec profile GREPROF
+
+interface Tun15
+ tunnel protection ipsec profile GREPROF
+ 
+track 10 ip sla 10 reachability
+track 13 ip sla 13 reachability
+track 14 ip sla 14 reachability
+track 15 ip sla 15 reachability
+track 21 ip sla 21 reachability
+track 22 ip sla 22 reachability
+
+ip sla schedule 10 life forever start-time now
+ip sla schedule 13 life forever start-time now
+ip sla schedule 14 life forever start-time now
+ip sla schedule 15 life forever start-time now
+ip sla schedule 21 life forever start-time now
+ip sla schedule 22 life forever start-time now
+
+
+
+ip route 10.10.0.0 255.255.0.0 10.100.100.1 track 10
+
+ip route 10.20.0.0 255.255.0.0 10.100.100.2 track 13
+ip route 10.20.0.0 255.255.0.0 80.82.1.1 track 21
+ip route 10.20.0.0 255.255.0.0 70.70.70.1 track 22
+
+
+
+
+
