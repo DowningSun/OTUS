@@ -302,7 +302,7 @@ ip sla 12
 exit
 
 ip sla 14
- icmp-echo 172.16.14.2 source-interface Tun14
+ icmp-echo 10.100.100.3 source-interface E0/0
  frequency 5
  timeout 5000
 exit
@@ -314,7 +314,8 @@ ip sla 15
 exit
 
 ip sla 16
- icmp-echo 10.100.100.3 source-interface Tun15
+ icmp-echo 172.16.14.2 source-interface Tun14
+ 
  frequency 5
  timeout 5000
 exit
