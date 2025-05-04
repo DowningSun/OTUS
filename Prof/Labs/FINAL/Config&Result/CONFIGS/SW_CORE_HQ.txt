@@ -155,14 +155,17 @@ ip dhcp excluded-address 10.10.30.1 10.10.30.50
 
 ip route 0.0.0.0 0.0.0.0 10.10.255.248
 
-//NTP с адресами основного и резервного сервером
+//NTP с адресами основного и резервного серверов
 
 clock timezone MSK 3
 
 ntp server 194.190.168.1 prefer
 ntp server 95.79.30.113
-
 ntp source Vlan999
+
+//и сами выступим в роле NTP сервера
+
+ntp master 4
 
 
 router ospf 1
