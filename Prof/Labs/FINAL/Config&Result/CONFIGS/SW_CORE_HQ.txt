@@ -163,10 +163,6 @@ ntp server 194.190.168.1 prefer
 ntp server 95.79.30.113
 ntp source Vlan999
 
-//и сами выступим в роле NTP сервера
-
-ntp master 4
-
 
 router ospf 1
  router-id 10.3.3.3
