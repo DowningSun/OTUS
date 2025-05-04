@@ -2,7 +2,7 @@
 
 Сети остальных провайдеров обмениваются маршрутами через через iBGP.
 
-конфигурации всех устройств можно посмотреть [Здесь]([https://www.google.com "Сайт Google"](https://github.com/DowningSun/OTUS/tree/main/Prof/Labs/FINAL/Config%26Result/CONFIGS))
+конфигурации всех устройств можно посмотреть [Здесь]([[https://www.google.com](https://github.com/DowningSun/OTUS/tree/main/Prof/Labs/FINAL/Config%26Result/CONFIGS)]
 
 
 
