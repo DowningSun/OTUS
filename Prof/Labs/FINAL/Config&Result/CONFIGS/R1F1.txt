@@ -66,7 +66,7 @@ exit
 ip access-list extended NAT_RULE
  deny ip 10.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255
  deny ip 192.168.1.0 0.0.0.255 10.10.40.0 0.0.0.255
- deny ip 10.20.20.0 0.0.0.255 10.30.30.0 0.0.0.255
+ deny ip 10.20.0.0 0.0.255.255 10.30.0.0 0.0.255.255
  permit ip 10.20.0.0 0.0.255.255 any
  permit ip 192.168.1.0 0.0.0.255 any 
 exit 
@@ -76,9 +76,26 @@ exit
 ip nat inside source list NAT_RULE interface E0/0 overload   
 ip nat inside source list NAT_RULE interface E0/1 overload 
 
-//маршруты по-умолчаниюю для "доступа в интернет" с приоритетами.
-ip route 0.0.0.0 0.0.0.0 80.82.1.2 10
-ip route 0.0.0.0 0.0.0.0 70.70.70.2 20
+//маршруты по-умолчаниюю для "доступа в интернет" с приоритетами и отслеживанием.
+
+ip sla 77
+ icmp-echo 80.82.1.2 source-interface E0/0
+ frequency 5
+ timeout 5000
+exit
+track 77 ip sla 77 reachability
+ip sla schedule 77 life forever start-time now
+
+ip sla 88
+ icmp-echo 70.70.70.2 source-interface E0/1
+ frequency 5
+ timeout 5000
+exit
+track 88 ip sla 88 reachability
+ip sla schedule 88 life forever start-time now
+
+ip route 0.0.0.0 0.0.0.0 80.82.1.2 10 track 77
+ip route 0.0.0.0 0.0.0.0 70.70.70.2 20 track 88
 
 //создаем DHCP пулы для внутренней сети, в VOIP транслируем option 150 для получения адреса сервера VOIP
 ip dhcp pool VLAN10
@@ -133,7 +150,7 @@ crypto isakmp key 1234567890 address 80.82.1.5
 
 ip access-list extended VPNCORE
   permit ip 10.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255 
-  permit ip 192.168.1.0 0.0.0.255 10.10.20.0 0.0.0.255 
+  permit ip 192.168.1.0 0.0.0.255 10.10.0.0 0.0.255.255 
 
 
 //ACL для связи  Село Ближнее и Поселок Дальний
@@ -281,10 +298,10 @@ ip sla schedule 22 life forever start-time now
 
 //маршруты для доступа в VPN завязанные на резулььтатах мониторинга IP Sla должны дать нам отказоустойчивость и автоматическое переключение в случае недоступности
 
-ip route 10.10.0.0 255.255.0.0 10.100.100.1 track 10
-ip route 10.10.0.0 255.255.0.0 172.16.11.1 track 11 
-ip route 10.10.0.0 255.255.0.0 172.16.12.1 track 12 
+ip route 10.10.0.0 255.255.0.0 10.100.100.1 10 track 10
+ip route 10.10.0.0 255.255.0.0 172.16.11.1 20 track 11 
+ip route 10.10.0.0 255.255.0.0 172.16.12.1 30 track 12 
 
-ip route 10.30.0.0 255.255.0.0 10.100.100.3 track 13
-ip route 10.30.0.0 255.255.0.0 80.82.30.1 track 21
-ip route 10.30.0.0 255.255.0.0 60.64.20.1 track 22
+ip route 10.30.0.0 255.255.0.0 10.100.100.3 10 track 13
+ip route 10.30.0.0 255.255.0.0 80.82.30.1 20 track 21
+ip route 10.30.0.0 255.255.0.0 60.64.20.1 30 track 22
