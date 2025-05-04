@@ -72,8 +72,26 @@ ip nat inside source list NAT_RULE interface E0/1 overload
 
 //маршруты по умолчанию для доступа в "интернет"
 
-ip route 0.0.0.0 0.0.0.0 80.82.30.2 10
-ip route 0.0.0.0 0.0.0.0 60.64.20.2 20
+ip sla 77
+ icmp-echo 80.82.30.2 source-interface E0/0
+ frequency 5
+ timeout 5000
+exit
+
+track 77 ip sla 77 reachability
+ip sla schedule 77 life forever start-time now
+
+ip sla 88
+ icmp-echo 60.64.20.2 source-interface E0/1
+ frequency 5
+ timeout 5000
+exit
+
+track 88 ip sla 88 reachability
+ip sla schedule 88 life forever start-time now
+
+ip route 0.0.0.0 0.0.0.0 80.82.30.2 10 track 77
+ip route 0.0.0.0 0.0.0.0 60.64.20.2 20 track 88
 
 //DHCP пулы
 
@@ -135,7 +153,7 @@ ip access-list extended VPNCORE
 //ACL для связи  Село Ближнее и Поселок Дальний
 
 ip access-list extended VPNF2
-  permit ip 10.30.30.0 0.0.0.255 10.20.20.0 0.0.0.255 
+  permit ip 10.30.20.0 0.0.0.255 10.20.20.0 0.0.0.255 
 
 // саздаем crypto-map для IPSEC с набором IKEv1 и привязываем к интерфейсам
 
@@ -221,15 +239,15 @@ interface Tun14
  ip mtu 1476
  ip tcp adjust-mss 1360
  tunnel source 80.82.30.1
- tunnel destination 80.82.1.5 
+ tunnel destination 90.40.60.140
 exit
 interface Tun15
  ip address 172.16.15.2 255.255.255.252
  ip mtu 1476
  ip tcp adjust-mss 1360
  tunnel source 60.64.20.1
- tunnel destination 90.40.60.140
-exit 
+ tunnel destination 80.82.1.5 
+exit
 
 //создаем transform-set для защиты GRE-тунелей
 
@@ -271,9 +289,9 @@ ip route 10.10.0.0 255.255.0.0 10.100.100.1 10 track 10
 ip route 10.10.0.0 255.255.0.0 172.16.15.1 20 track 15
 ip route 10.10.0.0 255.255.0.0 172.16.14.1 30  track 14
 
-ip route 10.20.0.0 255.255.0.0 10.100.100.2 track 13
-ip route 10.20.0.0 255.255.0.0 80.82.1.1 track 21
-ip route 10.20.0.0 255.255.0.0 70.70.70.1 track 22
+ip route 10.20.0.0 255.255.0.0 10.100.100.2 10 track 13
+ip route 10.20.0.0 255.255.0.0 80.82.1.1 20 track 21
+ip route 10.20.0.0 255.255.0.0 70.70.70.1 30 track 22
 
 
 
