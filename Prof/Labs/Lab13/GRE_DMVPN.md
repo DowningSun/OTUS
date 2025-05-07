@@ -88,7 +88,7 @@
     ip nhrp network-id 1 - задает идентификатор процесса NHRP
     ip nhrp redirect - данная команда включает режим 3 фазы DMVPN на HUB
     ip tcp adjust-mss 1360
-    tunnel source Loopback1 - это PI адрес R15.
+    tunnel source 60.60.60.2
     tunnel mode gre multipoint
     ip ospf network point-to-multipoint - режим работы OSPF в NBMA сети
     ip ospf 1 area 0
@@ -98,8 +98,8 @@
     interface Tunnel0
     ip address 172.16.10.2 255.255.255.0
     ip mtu 1400
-    ip nhrp map 172.16.10.1 100.100.20.15 - указывает соответсвие между адресом туннеля и белым адресом Hub
-    ip nhrp map multicast 100.100.20.15 
+    ip nhrp map 172.16.10.1 60.60.60.2 - указывает соответсвие между адресом туннеля и белым адресом Hub
+    ip nhrp map multicast 60.60.60.2 
     ip nhrp network-id 1
     ip nhrp nhs 172.16.10.1
     ip nhrp shortcut - данная команда включает режим 3 фазы DMVPN на SPOKE
@@ -109,7 +109,10 @@
     ip ospf network point-to-multipoint
     ip ospf 1 area 0
 
-Строим дополнительный туннель на R14
+На R28 Чокурдах создадим Tunnel0 аналогично R27
+
+
+Строим дополнительный туннель на R14 для повышения отказоустойчивости
 
     interface Tunnel1
     ip address 172.16.10.20 255.255.255.0 адрес подсети для туннеля DMVPN (из той же подсети, что и R15 у которого 172.16.10.1/24)
@@ -122,3 +125,10 @@
     tunnel mode gre multipoint
     ip ospf network point-to-multipoint - режим работы OSPF в NBMA сети 
     ip ospf 1 area 0
+
+проверяем соседство на R15
+
+![image](https://github.com/user-attachments/assets/d9e0e6ff-f332-4697-8c6e-62101995335b)
+
+
+
