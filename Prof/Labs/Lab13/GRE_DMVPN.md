@@ -131,4 +131,10 @@
 ![image](https://github.com/user-attachments/assets/d9e0e6ff-f332-4697-8c6e-62101995335b)
 
 
+Также в таблице соседства OSPF на R15
 
+![image](https://github.com/user-attachments/assets/1c3c5bd0-e69e-4df5-b338-50cc2fff7c70)
+
+Трассировка из сети Чокуррдах в сеть Москва показывает, что маршрут идет через туннель 172.16.10.1
+
+![image](https://github.com/user-attachments/assets/9251ae5e-f3ab-42a3-ac96-dd95302b2150)
