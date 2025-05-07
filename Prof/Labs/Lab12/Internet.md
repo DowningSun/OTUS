@@ -115,4 +115,10 @@ NAT трансляция на роутере R18 C-Петербург
 
 Интерфейс e0/3 роутера R15 сделать как ip nat inside
 
-       
+![изображение](https://github.com/user-attachments/assets/41d1087d-e5b6-4f78-b10a-f4befa59a426)
+
+![изображение](https://github.com/user-attachments/assets/02c36b5a-c9db-4e4f-8718-3fd32463a587)
+
+![изображение](https://github.com/user-attachments/assets/4e346a93-f8b6-4890-a350-a6f586b6ab57)
+
+
