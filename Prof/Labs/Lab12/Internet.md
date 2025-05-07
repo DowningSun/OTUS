@@ -122,3 +122,86 @@ NAT трансляция на роутере R18 C-Петербург
 ![изображение](https://github.com/user-attachments/assets/4e346a93-f8b6-4890-a350-a6f586b6ab57)
 
 
+## 4. Настроите NAT так, чтобы R19 был доступен с любого узла для удаленного управления
+
+Для выполнения это задания необходимо на роутере R14 прописать команду перенаправления портов
+
+        ip nat inside source static tcp 19.19.19.19 22 100.100.20.14 22 extendable
+
+В качестве Local адреса использован Loopback интерфейс 19.19.19.19
+
+Далее необходимо так же на роутере R14 прописать интерфейс e0/3 смотрящий на R19 как ip nat inside
+
+       interface Ethernet0/3
+       ip nat inside
+и интерфейс e0/1 смотрящий на R15 как ip nat outside. 
+
+       interface Ethernet0/1
+       ip nat outside
+
+
+## 5.Настроите статический NAT(PAT) для офиса Чокурдах
+
+ Сети офиса Чокурдах выходят через один канал, по умолчанию через R25 130.130.130.1. Если канал падает, то будет происходить переключение на R26 140.140.140.1. Для этого понадобится трек отслеживания. IP Sla пингует хост 130.130.130.1 кажые 5 сек. И если хост 130.130.130.1 падает то на R28 Чокурадх появляется следущее сообщение
+
+        "%TRACKING-5-STATE: 1 ip sla 1 reachability Up->Down"
+
+Если хост 130.130.130.1 поднимается, то появляется следущее сообщение
+
+       "%TRACKING-5-STATE: 1 ip sla 1 reachability Down->Up"
+
+На R28 в таблице маршрутизации находятся два маршрута по умолчанию
+
+       ip route 0.0.0.0 0.0.0.0 130.130.130.1 track 1
+       ip route 0.0.0.0 0.0.0.0 140.140.140.1 20
+
+На R28 пометим интерфейсы как IP Nat Outside и IP Nat Inside
+       
+       e0/0 и e0/1 - ip nat outside
+       e0/2.60 и e0/2.70 - ip nat inside
+
+Создадим access-list для подсетей офиса Чокурдах
+
+       access-list 10 permit 192.168.0.0 0.0.255.255
+
+На интерфейс e0/1 R28 добавим secondary адрес. Из под этого адреса будет осуществляться nat трансляция. Если выполнять nat трансляцию через основной ip, то трек отслеживания перестанет работать.
+
+       interface Ethernet0/1
+       ip address 130.130.130.3 255.255.255.240 secondary
+       ip address 130.130.130.2 255.255.255.240
+       ip nat outside
+
+На R28 создадим два пула NAT. Это необходимо для переключения между пулами, когда падает основной линк.
+
+       ip nat pool NAT_130 130.130.130.3 130.130.130.3 netmask 255.255.255.240
+       ip nat pool NAT_140 140.140.140.2 140.140.140.2 netmask 255.255.255.240
+
+Создадим Nat трансляцию которая будет использоваться по умолчанию
+
+       ip nat inside source list 10 pool NAT_130 overload   
+
+Настроим Cisco Event Менеджер
+
+       event manager applet NAT_130_DOWN - название Эвента
+       event syslog pattern "%TRACKING-5-STATE: 1 ip sla 1 reachability Up->Down" - событие по которому будет происходить выполнение последовательных команд
+       action 1.1 cli command "enable"
+       action 1.2 cli command "clear ip nat tr *"
+       action 1.3 cli command "configure terminal"
+       action 1.4 cli command "no ip nat inside source list 10 pool NAT_130 overload"
+       action 1.5 cli command "ip nat inside source list 10 pool NAT_140 overload"
+       action 1.6 cli command "end"
+       event manager applet NAT_130_UP
+       event syslog pattern "%TRACKING-5-STATE: 1 ip sla 1 reachability Down->Up"
+       action 1.1  cli command "enable"
+       action 1.2  cli command "clear ip nat tr *"
+       action 1.3  cli command "configure terminal"
+       action 1.4  cli command "no ip nat inside source list 10 pool NAT_140 overload"
+       action 1.5  cli command "ip nat inside source list 10 pool NAT_130 overload"
+       action 1.6  cli command "end"
+
+при срабатывании срабатывает %TRACKING-5-STATE: 1 ip sla 1 reachability Up->Down и происходит переключение с маршрута по умолчанию на 140.140.140.1 и меняется трансляцию серых адресов из пула NAT_130 в NAT_140
+![изображение](https://github.com/user-attachments/assets/fa87671b-e51d-422f-b62e-e70ade8d765d)
+
+Так же когда срабатывает TRACKING-5-STATE: 1 ip sla 1 reachability Down->Up, то происходит обратная ситуация и так же меняется маршрут по умолчанию и трансляцию адресов в другой пул
+
+
