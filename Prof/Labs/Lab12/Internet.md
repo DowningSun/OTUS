@@ -199,9 +199,62 @@ NAT трансляция на роутере R18 C-Петербург
        action 1.5  cli command "ip nat inside source list 10 pool NAT_130 overload"
        action 1.6  cli command "end"
 
-при срабатывании срабатывает %TRACKING-5-STATE: 1 ip sla 1 reachability Up->Down и происходит переключение с маршрута по умолчанию на 140.140.140.1 и меняется трансляцию серых адресов из пула NAT_130 в NAT_140
+при срабатывании срабатывает %TRACKING-6-STATE: 1 ip sla 1 reachability Up->Down и происходит переключение с маршрута по умолчанию на 140.140.140.1 и меняется трансляцию серых адресов из пула NAT_130 в NAT_140
 ![изображение](https://github.com/user-attachments/assets/fa87671b-e51d-422f-b62e-e70ade8d765d)
 
-Так же когда срабатывает TRACKING-5-STATE: 1 ip sla 1 reachability Down->Up, то происходит обратная ситуация и так же меняется маршрут по умолчанию и трансляцию адресов в другой пул
+Так же когда срабатывает TRACKING-6-STATE: 1 ip sla 1 reachability Down->Up, то происходит обратная ситуация и так же меняется маршрут по умолчанию и трансляцию адресов в другой пул
 
+![изображение](https://github.com/user-attachments/assets/fce3bc63-a2b9-4107-bcf6-c372db5c8477)
+
+## 6. Настроите для IPv4 DHCP сервер в офисе Москва на маршрутизаторах R12 и R13. VPC1 и VPC7 должны получать сетевые настройки по DHCP
+
+На роутерах R12 и R13 исключаем адреса для автоматической выдачи по DHCP
+
+Для роутера R12 делаем исключение
+
+для сети LAN_20
+
+       ip dhcp excluded-address 192.168.20.1 192.168.20.3 
+       ip dhcp excluded-address 192.168.20.128 192.168.20.254 
+
+для сети LAN_30
+
+       ip dhcp excluded-address 192.168.30.1 192.168.30.3 
+       ip dhcp excluded-address 192.168.30.128 192.168.30.254 
+
+Для роутера R13 делаем исключение для сети
+
+для сети LAN_20
+
+       ip dhcp excluded-address 192.168.20.1 192.168.20.3 
+       ip dhcp excluded-address 192.168.20.4 192.168.20.127
+
+для сети LAN_30
+
+       ip dhcp excluded-address 192.168.30.1 192.168.30.3
+       ip dhcp excluded-address 192.168.30.4 192.168.30.127 
+
+На роутерах R12 и R13 создаем пул LAN_20 и LAN_30
+
+ip dhcp pool LAN_20
+network 192.168.20.0 255.255.255.0
+default-router 192.168.20.1 
+
+ip dhcp pool LAN_30
+network 192.168.30.0 255.255.255.0
+default-router 192.168.30.1 
+
+На коммутаторах SW4 и SW5 для интерфейсов vlan 20 и vlan 30 настраиваем два ip helper-address
+
+       interface Vlan20
+       ip helper-address 12.12.12.12 
+       ip helper-address 13.13.13.13 
+
+       interface Vlan30
+       ip helper-address 12.12.12.12 
+       ip helper-address 13.13.13.13 
+
+Проверяем.
+
+![изображение](https://github.com/user-attachments/assets/8b546ad1-7aa4-4412-a5ac-c40029ce582f)
 
