@@ -134,11 +134,16 @@ tunnel protection ipsec profile GRE-PROF
 
 3. * Для IPSec использовать CA и сертификаты
   
-  в качестве сервера CA будет использован роутер R19 c loopback адресом 19.19.19.19. Для настройки роутера R19 в качестве сервера CA необходимо выполнить:
+R15
 
-        ip domain-name otus.ru - команда задает имя домена      
-        ip http server - включаем протокол http. Необходим для передачи закрытого ключа по протоколу SCEP
-        crypto key generate rsa general-keys label R19_CA modulus 2048 - команда создает пару открытого и закрытого ключа для сервера CA с названием R19_CA
+        ip domain-name otus.ru
+        ip http server
+        crypto key generate rsa general-keys label CA exportable modulus 2048      
 
-![image](https://github.com/user-attachments/assets/e19277d6-d736-49c4-963f-017b3848bd7a)
+        crypto pki server CA
+        no shut
 
+R27
+
+        
+        
