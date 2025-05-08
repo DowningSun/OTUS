@@ -106,8 +106,7 @@ tunnel protection ipsec profile GRE-PROF
         crypto isakmp policy 1
         encr aes
         authentication pre-share
-        group 14
-        lifetime 3600
+        group 2
         crypto isakmp key 123123123 address 100.100.20.15
         crypto isakmp key 123123123 address 100.100.20.14
         crypto ipsec transform-set GRE-PROF esp-aes esp-sha-hmac
@@ -144,6 +143,65 @@ R15
         no shut
 
 R27
+
+        crypto key generate rsa label VPN
+        The name for the keys will be: VPN
+        Choose the size of the key modulus in the range of 360 to 4096 for your
+        General Purpose Keys. Choosing a key modulus greater than 512 may take
+        a few minutes.
+
+        How many bits in the modulus [512]: 2048
+        % Generating 2048 bit RSA keys, keys will be non-exportable...
+        [OK] (elapsed time was 2 seconds)
+
+        R27(config)#crypto pki trustpoint VPN
+        R27(ca-trustpoint)#enrollment url http://172.16.10.1
+        R27(ca-trustpoint)#subject-name CN=R27,OU=VPN,O=OTUS,C=RU 
+        R27(ca-trustpoint)#rsakeypair VPN
+        R27(ca-trustpoint)#revocation-check none
+
+        R27(config)#crypto pki authenticate VPN
+        Certificate has the following attributes:
+        Fingerprint MD5: B844D35E A124ABF4 D3ABF093 496B3646
+        Fingerprint SHA1: 39AB1E92 EE241F8D 129BCD54 468562A0 7EBB7AC1
+ 
+
+        % Do you accept this certificate? [yes/no]: yes
+        Trustpoint CA certificate accepted.
+        R27(config)#crypto pki enroll VPN
+
+        Start certificate enrollment .. 
+        Create a challenge password. You will need to verbally provide this
+        password to the CA Administrator in order to revoke your certificate.
+        For security reasons your password will not be saved in the configuration.
+        Please make a note of it.
+
+        Password: 
+        Re-enter password: 
+
+        % The subject name in the certificate will include: CN=R27,OU=VPN,O=OTUS,C=RU
+        % The subject name in the certificate will include: R27
+        % Include the router serial number in the subject name? [yes/no]: no
+        % Include an IP address in the subject name? [no]: no
+        Request certificate from CA? [yes/no]: yes
+        % Certificate request sent to Certificate Authority
+        % The 'show crypto pki certificate verbose VPN' commandwill show the fingerprint.
+
+        *May  8 07:41:08.081: CRYPTO_PKI:  Certificate Request Fingerprint MD5: 540CF5E2 C4C2BC43 8066D2A8 613FD25C
+        *May  8 07:41:08.081: CRYPTO_PKI:  Certificate Request Fingerprint SHA1: 0A488727 23E6C4C9 803A152D 17045ECE 96024B3B
+
+Запрос сертификата от R27
+
+![image](https://github.com/user-attachments/assets/a30ca5ec-f1d4-40ea-85f3-a0ef366f9048)
+
+![image](https://github.com/user-attachments/assets/4cd99a2c-7b0e-43de-81b9-f92b9a54bd1c)
+
+Аналогичный набор команд делаем на других роутерах, которые будут проходить авторизацию через сертифика.
+
+Далее необходимо изменить политику
+        crypto isakmp policy 10
+        authentication rsa-sig 
+
 
         
         
