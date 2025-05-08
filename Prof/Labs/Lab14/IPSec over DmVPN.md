@@ -38,7 +38,12 @@
     int tun 0
     tun prot ipsec prof GRE-PROF
 
-  На роутерее R18 создаются аналогичные настрройки
+ 
+После включения IPSec на R15, но до момента включения на R18 получаем сообщение, что устройство приняло GRE-пакет (protocol 47), не инкапсулированный в IPsec, тогда как ожидался IPsec-защищённый GRE.
+
+![image](https://github.com/user-attachments/assets/b14cc759-bb34-4f6e-83bb-5c606b357454)
+
+ На роутерее R18 создаются аналогичные настрройки
 
     crypto isakmp policy 1         создает политики шифрования для 1 фазы
     encr aes    устанавливает шифрование
@@ -55,15 +60,13 @@
     int tun 0    применяяем настройки к интерфейсу Tun0
     tunnel protection ipsec profile GRE-PROF
 
+Теперь проверяем, что появился  IPSec туннель. Статус  QM_IDLE говорит, что все работает штатно. Это подтверждает, что IKE SA установлены и в состоянии QM_IDLE, что нормально для IKEv1 Main Mode (Phase 1 завершена) + Quick Mode (Phase 2 активна). То есть IPsec SA работают
 
-После включения IPSec на R15, но до момента включения на R18 получаем сообщение
+![image](https://github.com/user-attachments/assets/3619c4b1-9112-494a-8f7c-f68881203e1c)
 
-![image](https://github.com/user-attachments/assets/b14cc759-bb34-4f6e-83bb-5c606b357454)
+Пинг-чек + трассировка показывают, что узлы доступны, трафик идёт через туннель
 
-
-
-
-
+![image](https://github.com/user-attachments/assets/9fc13282-749a-4c81-8b5a-46d326235df4)
 
 
 
@@ -72,5 +75,3 @@
 
 
 
-    
-R18(config-if)#tunnel protection ipsec profile GRE-PROF
