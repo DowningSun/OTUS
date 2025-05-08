@@ -68,10 +68,77 @@
 
 ![image](https://github.com/user-attachments/assets/9fc13282-749a-4c81-8b5a-46d326235df4)
 
+Создадим резерв на R14
+
+        crypto isakmp policy 1
+        encr aes
+        authent pre-share       
+        group 2
+        crypt isa key 123123123 addr 200.200.30.18
+
+        crypto ipsec transform-set GRE-TSET esp-aes esp-sha-hmac
+        mode transport
+
+        crypto ipsec prof GRE-PROF
+        set transform-set GRE-TSET
+
+        int tun 0
+        tun prot ipsec prof GRE-PROF
+
+Ппока R18 не имеет настройки для связи с R14 получаем сообщение
+
+![image](https://github.com/user-attachments/assets/05c50c84-9270-4378-84bd-4724aa48c149)
+
+На R18 добавить команду для создания мини-туннеля 1 фазы
+
+crypto isakmp key 123123123 address 100.100.20.14
+
+На роутере R18 настроить интерфейс Tunnel 1 (это второй туннель на этом роутере для GRE между R18 и R14). Настройки GRE over IPSec сводятся лишь к тому, что необходимо добавить в интерфей Tunnel 1 профиль GRE-PROF
+
+interface Tunnel1
+tunnel protection ipsec profile GRE-PROF
 
 
+## 2. Настроите DMVPN поверх IPSec между Москва и Чокурдах, Лабытнанги
 
+На роутерах R27 Лабытнаги и R28 Чокурдах настроить первую и вторую фазы IPSec, настройка профиля IPSec.
 
+        crypto isakmp policy 1
+        encr aes
+        authentication pre-share
+        group 14
+        lifetime 3600
+        crypto isakmp key 123123123 address 100.100.20.15
+        crypto isakmp key 123123123 address 100.100.20.14
+        crypto ipsec transform-set GRE-PROF esp-aes esp-sha-hmac
+        mode transport
+        crypto ipsec profile GRE-PROF
+        set transform-set GRE-PROF
 
+На R27 и R28 на туннельном интерфейсе Tunnel0 привязать профиль IPSec
 
+        interface Tunnel0
+        tunnel protection ipsec profile GRE-PROF
+
+На роутерах R14 и R15 ввести команды для организации мини-туннеля 1 фазы
+
+ На R14
+
+        crypto isakmp key 123123123 address 120.120.120.2 - для Лабытнаги
+        crypto isakmp key 123123123 address 130.130.130.2 - для Чокурдах
+
+На R15
+
+        crypto isakmp key 123123123 address 120.120.120.2 - для Лабытнаги
+        crypto isakmp key 123123123 address 130.130.130.2 - для Чокурдах 
+
+3. * Для IPSec использовать CA и сертификаты
+  
+  в качестве сервера CA будет использован роутер R19 c loopback адресом 19.19.19.19. Для настройки роутера R19 в качестве сервера CA необходимо выполнить:
+
+        ip domain-name otus.ru - команда задает имя домена      
+        ip http server - включаем протокол http. Необходим для передачи закрытого ключа по протоколу SCEP
+        crypto key generate rsa general-keys label R19_CA modulus 2048 - команда создает пару открытого и закрытого ключа для сервера CA с названием R19_CA
+
+![image](https://github.com/user-attachments/assets/e19277d6-d736-49c4-963f-017b3848bd7a)
 
