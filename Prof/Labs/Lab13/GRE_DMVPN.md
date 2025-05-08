@@ -137,4 +137,5 @@
 
 Трассировка из сети Чокуррдах в сеть Москва показывает, что маршрут идет через туннель 172.16.10.1
 
-![image](https://github.com/user-attachments/assets/9251ae5e-f3ab-42a3-ac96-dd95302b2150)
+![image](https://github.com/user-attachments/assets/8411a90b-4f21-4254-8ae9-d32722aa44f1)
+
